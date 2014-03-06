@@ -1,0 +1,164 @@
+<html>
+  <head>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'] ],
+        displayMath: [ ["\\[","\\]"] ],
+        processEscapes: true
+      },
+      "HTML-CSS": { availableFonts: ["TeX"] },
+      TeX: {
+        Macros: {
+"hooklongrightarrow": "\\lhook\\joinrel\\longrightarrow",
+"Spc": "\\mathbf{Spc}",
+"Sch": "\\mathbf{Sch}",
+"A": "\\mathbf{A}",
+"H": "\\mathbf{H}",
+"PSh": "\\mathbf{PSh}",
+"SH": "\\mathbf{SH}",
+"SPSh": "\\mathbf{SPSh}",
+"Hom": "\\mathrm{Hom}",
+"Sm": "\\mathbf{Sm}",
+"hook": "\\hookrightarrow",
+"M": "\\mathrm{M}",
+"L": "\\mathrm{L}",
+"Spt": "\\mathbf{Spt}",
+"too": "\\longrightarrow",
+"infSm": "\\underline{\\mathbf{Sm}}",
+"SSet": "\\mathbf{SSet}",
+"Gmult": "\\mathbf{G}^{\\mathrm{m}}",
+
+        }
+      }
+    });
+    </script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full">
+    </script>
+    <title>The stable motivic homotopy category</title>
+    <style type="text/css">
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-family: Georgia, Times, serif;
+        font-size: 11pt;
+      }
+      #wrapper {
+        width: 600px;
+        margin: 40px 100px;
+        line-height: 1.5em;
+      }
+        h1, h2 {
+          line-height: 2em;
+          margin: 0;
+          font-weight: bold;
+          font-size: 1em;
+        }
+        h2 {
+          font-weight: normal;
+          margin-bottom: 10px;
+        }
+
+        #content {}
+          .para {
+            margin: 20px 0;
+          }
+            .para .index,
+            .para .type {
+              font-weight: bold;
+            }
+            .para .content {
+              display: inline;
+            }
+    </style>
+  </head>
+  <body>
+    <div id="wrapper">
+      <h1>The stable motivic homotopy category</h1>
+      <h2>A. Khan Yusufzai</h2>
+      <div id="content">
+<div class="para para">
+          <span class="index">1.&nbsp;&nbsp;</span>
+
+          <div class="content">
+Fix a noetherian scheme $S$ and write $\Sch(S)$ for the essentially small category of finite type $S$-schemes.
+Let $\Sm(S)$ denote the full subcategory of smooth and finite type $S$-schemes.
+</div>
+        </div>
+<div class="para def">
+          <span class="index">2.&nbsp;&nbsp;</span>
+
+          <span class="type">
+Definition. &mdash;</span>
+
+          <div class="content">
+Consider the cocomplete category $\SPSh(\Sm(S)) = \PSh(\Sm(S)), \SSet)$ of simplicial presheaves on $\Sm(S)$ (<span class="citation"></span>).
+Recall that the projective model structure on this category has objectwise weak equivalences and objectwise fibrations, where we consider $\SSet$ with the standard model structure (<span class="citation"></span>); see (<span class="citation"></span>).
+Note that the fibrant objects are simplicial presheaves that take values in Kan complexes.
+This model category presents the $(\infty,1)$-category of $(\infty,1)$-presheaves on $\infSm(S)$.
+</div>
+        </div>
+<div class="para def">
+          <span class="index">3.&nbsp;&nbsp;</span>
+
+          <span class="type">
+Definition. &mdash;</span>
+
+          <div class="content">
+Consider the Nisnevich topology on the category $\Sm(S)$ (???).
+Recall that one has a <span class="definition">Nisnevich-local projective model structure</span> on $\SPSh(\Sm(S))$, where fibrant objects are presheaves that take values in Kan complexes  and satisfy descent with respect to Nisnevich hypercovers (<span class="citation"></span>).
+This model category presents the hypercompletion of the $(\infty,1)$-category of $(\infty,1)$-sheaves on $\infSm(S)$.
+The homotopy category with respect to this model structure, which we will denote by $\Spc(S)$, is called the category of <span class="definition">motivic spaces</span> over $S$.
+
+Note that there is a canonical functor
+  \[ \L_S : \Sm(S) \to \Spc(S) \]
+which maps a scheme $X$ in $\Sm(S)$ to the motivic space $\L_S(X)$ which maps $Y \in \Sm(S)$ to the constant simplicial set $\Hom_{\Sm(S)}(Y, X)$.
+Indeed note that this presheaf is clearly fibrant with respect to the Nisnevich-local projective model structure.
+</div>
+        </div>
+<div class="para def">
+          <span class="index">4.&nbsp;&nbsp;</span>
+
+          <span class="type">
+Definition. &mdash;</span>
+
+          <div class="content">
+The <span class="definition">$\A^1$-local projective model structure</span> on $\SPSh(\Sm(S))$ is the left Bousfield localization of the Nisnevich-local projective model structure at the class of morphisms
+  \[ \L_S(X \times_S  \A^1_S) \too \L_S(X) \]
+induced by the projections $X \times_S \A^1_S \to X$, for $X$ in $\Sm(S)$.
+The homotopy category with respect to this model structure, which we will denote by $\H(S)$, is called the <span class="definition">unstable motivic homotopy category</span> over $S$.
+</div>
+        </div>
+<div class="para def">
+          <span class="index">5.&nbsp;&nbsp;</span>
+
+          <span class="type">
+Definition. &mdash;</span>
+
+          <div class="content">
+Let $T$ be a cofibrant replacement of the <span class="definition">Tate sphere</span>, the motivic space associated to the homotopy cofibre of the morphism 
+  \[ \L_S(\Gmult_S) \too \L_S(\A^1_S) \]
+induced by the inclusion $\Gmult_S \hook \A^1_S$, where $\Gmult_S$ denotes the complement of the point $0$ in the affine line $\A^1_S$.
+</div>
+        </div>
+<div class="para def">
+          <span class="index">6.&nbsp;&nbsp;</span>
+
+          <span class="type">
+Definition. &mdash;</span>
+
+          <div class="content">
+Consider the category $\Spt_T^\Sigma(\SPSh(\Sm(S)))$ of symmetric $T$-spectra in $\SPSh(\Sm(S))$ (<span class="citation"></span>).
+Recall that it has a stable projective model structure induced by the $\A^1$-local projective model structure on $\SPSh(\Sm(S))$ (<span class="citation">Ayoub, 4.3.29</span>).
+The homotopy category associated to this model structure is called the <span class="definition">stable motivic homotopy category</span> over $S$, denoted $\SH(S)$.
+We write
+  \[ \M_S : \Sm(S) \too \SH(S) \]
+for the composite of the functor $\L_S : \Sm(S) \to \H(S)$ with the localization functor $\H(S) \to \SH(S)$.
+</div>
+        </div>
+
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+TeXML is an XML-based markup language that I use for writing mathematical notes and articles.
+
+The script texml.py converts .txml files to HTML files, using MathJax to render math.
+It is currently in a very primitive state.
+The file template.html can be modified as desired.
+Conversion from TeXML to LaTeX will probably be added soon (this requires only modifying the template.html file).
+See the tests/ folder for examples.

@@ -1,0 +1,85 @@
+<html>
+  <head>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'] ],
+        displayMath: [ ["\\[","\\]"] ],
+        processEscapes: true
+      },
+      "HTML-CSS": { availableFonts: ["TeX"] },
+      TeX: {
+        Macros: {
+{% for k,v in macros -%}
+          "{{ k }}": "{{ v }}",
+{% endfor %}
+        }
+      }
+    });
+    </script>
+    <script type="text/javascript"
+      src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML-full">
+    </script>
+    <title>{{ title }}</title>
+    <style type="text/css">
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-family: Georgia, Times, serif;
+        font-size: 11pt;
+      }
+      #wrapper {
+        width: 600px;
+        margin: 40px 100px;
+        line-height: 1.5em;
+      }
+        h1, h2 {
+          line-height: 2em;
+          margin: 0;
+          font-weight: bold;
+          font-size: 1em;
+        }
+        h2 {
+          font-weight: normal;
+          margin-bottom: 10px;
+        }
+
+        #content {}
+          .para {
+            margin: 20px 0;
+          }
+            .para .index,
+            .para .type {
+              font-weight: bold;
+            }
+            .para .content {
+              display: inline;
+            }
+    </style>
+  </head>
+  <body>
+    <div id="wrapper">
+      <h1>{{ title }}</h1>
+      <h2>{{ author }}</h2>
+      <div id="content">
+{% for para in paras -%}
+        <div class="para {{ para.type }}">
+          <span class="index">{{ loop.index }}.&nbsp;&nbsp;</span>
+{% if para.type and para.type != "para" %}
+          <span class="type">
+{% if para.type == "def" %}Definition{% endif -%}
+{% if para.type == "rmk" %}Remark{% endif -%}
+{% if para.type == "lem" %}Lemma{% endif -%}
+{% if para.type == "prp" %}Proposition{% endif -%}
+{% if para.type == "cor" %}Corollary{% endif -%}
+{% if para.type == "thm" %}Theorem{% endif -%}
+{% if para.type == "prf" %}Proof{% endif -%}
+. &mdash;</span>
+{% endif %}
+          <div class="content">{{ para.content }}</div>
+        </div>
+{% endfor %}
+      </div>
+    </div>
+  </body>
+</html>
