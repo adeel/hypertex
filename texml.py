@@ -4,7 +4,7 @@ from functools import reduce
 from lxml import etree
 from jinja2 import Environment, FileSystemLoader
 
-_para_types = ["para", "def", "rmk", "lem", "prp", "thm", "cor", "prf"]
+_para_types = ["intro", "para", "def", "rmk", "lem", "prp", "thm", "cor", "prf"]
 
 def _dict_merge(d, e):
   return dict(list(d.items()) + list(e.items()))

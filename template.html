@@ -65,7 +65,7 @@
 {% for para in paras -%}
         <div class="para {{ para.type }}">
           <span class="index">{{ loop.index }}.&nbsp;&nbsp;</span>
-{% if para.type and para.type != "para" %}
+{% if para.type and para.type not in ["para", "intro"] -%}
           <span class="type">
 {% if para.type == "def" %}Definition{% endif -%}
 {% if para.type == "rmk" %}Remark{% endif -%}
