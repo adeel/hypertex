@@ -55,6 +55,13 @@
             .para .content {
               display: inline;
             }
+              .para .content a,
+              .para .content a:visited {
+                color: blue;
+              }
+              .para .content .definition {
+                font-style: italic;
+              }
     </style>
   </head>
   <body>
@@ -63,7 +70,7 @@
       <h2>{{ author }}</h2>
       <div id="content">
 {% for para in paras -%}
-        <div class="para {{ para.type }}">
+        <div class="para {{ para.type }}">{% for tag in para.tags %}<a name="{{ tag }}"></a>{% endfor %}
           <span class="index">{{ loop.index }}.&nbsp;&nbsp;</span>
 {% if para.type and para.type not in ["para", "intro"] -%}
           <span class="type">

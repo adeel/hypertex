@@ -55,12 +55,38 @@ def parse_texml(input):
   root = etree.fromstring(input)
   return reduce(_parse_first_gen, root, {})
 
-def _render_node_to_html(node):
+def _render_content(node):
   if type(node) is str:
     return node
   content = node.get("content", "")
   if type(content) is list:
     content = "".join(_render_node_to_html(n) for n in content)
+  return content
+
+def _render_citation_to_html(node):
+  tag = node.get("tag", "")
+  ref = node.get("ref", "")
+  url = ""
+  text = _render_content(node)
+  if tag:
+    tag_parts = tag.split("/")
+    url = "%s.html#%s" % (tag_parts[0], tag_parts[1])
+    if not text.strip():
+      text = tag
+  elif ref:
+    url = "#%s" % ref
+  template = Environment(loader=FileSystemLoader("./")) \
+               .get_template("citation.html")
+  return template.render({
+    "tag":  tag,
+    "ref":  ref,
+    "url":  url,
+    "text": text})
+
+def _render_node_to_html(node):
+  if type(node) is str:
+    return node
+  content = _render_content(node)
   if node.get("type") in _para_types:
     return "<div class=\"para %s\">1.&nbsp;&nbsp;%s</div>" % (node.get("type"), content)
   if node.get("type") == "bold":
@@ -70,7 +96,7 @@ def _render_node_to_html(node):
   if node.get("type") == "definition":
     return "<span class=\"definition\">%s</span>" % content
   if node.get("type") == "citation":
-    return "<span class=\"citation\">%s</span>" % content
+    return _render_citation_to_html(node)
   return content
 
 def _render_para_to_html(para):
