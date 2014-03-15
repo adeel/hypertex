@@ -4,7 +4,7 @@ from functools import reduce
 from lxml import etree
 from jinja2 import Environment, FileSystemLoader
 
-_para_types = ["intro", "para", "def", "rmk", "lem", "prp", "thm", "cor", "prf"]
+_para_types = ["intro", "para", "def", "rmk", "lem", "prp", "thm", "cor", "prf", "ex"]
 
 def _dict_merge(d, e):
   return dict(list(d.items()) + list(e.items()))
@@ -70,7 +70,12 @@ def _render_citation_to_html(node):
   text = _render_content(node)
   if tag:
     tag_parts = tag.split("/")
-    url = "%s.html#%s" % (tag_parts[0], tag_parts[1])
+    if len(tag_parts) == 0:
+      url = "#"
+    elif len(tag_parts) == 1:
+      url = "#" + tag_parts[0]
+    else:
+      url = "%s.html#%s" % (tag_parts[0], tag_parts[1])
     if not text.strip():
       text = tag
   elif ref:
