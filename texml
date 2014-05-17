@@ -82,8 +82,9 @@ def _render_citation_to_html(node):
       text = tag
   elif ref:
     url = "#%s" % ref
-  template = Environment(loader=FileSystemLoader("./")) \
-               .get_template("citation.html")
+  tmpl_path = os.path.dirname(os.path.realpath(__file__))
+  env = Environment(loader=FileSystemLoader(tmpl_path))
+  template = env.get_template("citation.html")
   return template.render({
     "tag":  tag,
     "ref":  ref,
@@ -118,7 +119,8 @@ def _escape_macros(macros):
 def texml_to_html(input):
   parsed = parse_texml(input)
 
-  env = Environment(loader=FileSystemLoader("./"))
+  tmpl_path = os.path.dirname(os.path.realpath(__file__))
+  env = Environment(loader=FileSystemLoader(tmpl_path))
   template = env.get_template("template.html")
   html = template.render({
     "title":   parsed["title"],
@@ -138,7 +140,7 @@ if __name__ == "__main__":
     print("Unable to open the file: %s" % infile)
     exit()
   outfile = os.path.splitext(infile)[0] + ".html"
-  try:
-    open(outfile, "w").write(texml_to_html(input))
-  except IOError:
-    print("Unable to write to file: %s" % outfile)
+  # try:
+  open(outfile, "w").write(texml_to_html(input))
+  # except IOError:
+    # print("Unable to write to file: %s" % outfile)
