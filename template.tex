@@ -1,0 +1,58 @@
+{% raw %}
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[utf8]{inputenc}
+
+%%
+
+\usepackage{aky-layout2}
+\usepackage{aky-math}
+\toggletrue{akynochapters}
+\toggletrue{akynosections}
+
+%%%%%%%
+%% http://zoonek.free.fr/LaTeX/LaTeX_samples_title/0.html
+
+\makeatletter
+\def\thickhrulefill{\leavevmode \leaders \hrule height 1pt\hfill \kern \z@}
+\def\maketitle{%
+  %\null
+  \thispagestyle{empty}%
+  \vskip 1cm
+  %\vfil
+  \begin{center}
+    \Large \strut \@title \par
+  \end{center}
+  \par
+  %\vfil
+  \begin{center}
+    \emph{by } \normalfont\@author\par
+    %\ \\ \normalfont\@date\par
+  \end{center}
+  %\vfil
+  %\vfil
+  %\vfil
+  %\null
+  %\cleardoublepage
+  }
+\makeatother
+{% endraw %}
+{{ "\\author{" }}{{ author }}{{ "}" }}
+{{ "\\title{\\uppercase{" }}{{ title }}{{ "}}" }}
+
+{% for k,v in macros -%}
+{{ "\\newcommand{\\" }}{{ k }}{{ "}{" }}{{ v }}{{ "}" }}
+{% endfor %}
+
+{% raw %}
+\begin{document}
+
+\maketitle
+
+{% endraw %}
+{% for par in pars -%}\para{% for tag in par.tags -%}{% if tag -%}{{ "\\label{" }}{{ tag }}{{ "}" }}{% endif %}{% endfor %}{{ par.content }}
+{% endfor %}
+{% raw %}
+
+\end{document}
+{% endraw %}

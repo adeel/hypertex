@@ -79,7 +79,7 @@ def parse_texml(input):
   root = etree.fromstring(input)
   return reduce(_parse_first_gen, root, {})
 
-def _render_content(node):
+def _render_content_to_html(node):
   if type(node) is str:
     return node
   content = node.get("content", "")
@@ -91,7 +91,7 @@ def _render_citation_to_html(node):
   tag = node.get("tag", "")
   ref = node.get("ref", "")
   url = ""
-  text = _render_content(node)
+  text = _render_content_to_html(node)
   if tag:
     tag_parts = tag.split("/")
     if len(tag_parts) == 0:
@@ -115,7 +115,7 @@ def _render_citation_to_html(node):
 
 def _render_term_to_html(node):
   tag = node.get("tag", "")
-  text = _render_content(node)
+  text = _render_content_to_html(node)
 
   tag_parts = tag.split("/")
   url = ""
@@ -137,7 +137,7 @@ def _render_term_to_html(node):
 def _render_node_to_html(node):
   if type(node) is str:
     return node
-  content = _render_content(node)
+  content = _render_content_to_html(node)
   if node.get("type") in _block_tags:
     tmpl_path = os.path.dirname(os.path.realpath(__file__))
     env = Environment(loader=FileSystemLoader(tmpl_path))
@@ -160,9 +160,6 @@ def _render_node_to_html(node):
 def _render_par_to_html(par):
   return "".join(_render_node_to_html(n) for n in par.get("content"))
 
-def _render_content_to_html(parsed):
-  return "\n".join(_render_node_to_html(par) for par in parsed["body"]["pars"])
-
 def _escape_macros(macros):
   return [(k, v.replace("\\", "\\\\")) for (k, v) in macros.items()]
 
@@ -179,18 +176,94 @@ def texml_to_html(input):
     "pars":   [_dict_merge(p, {"content": _render_par_to_html(p)}) for p in parsed["body"]["pars"]]})
   return html
 
+def _render_content_to_tex(node):
+  if type(node) is str:
+    return node
+  content = node.get("content", "")
+  if type(content) is list:
+    content = "".join(_render_node_to_tex(n) for n in content)
+  return content
+
+def _render_citation_to_tex(node):
+  return _render_content_to_tex(node)
+
+def _render_term_to_tex(node):
+  return _render_content_to_tex(node)
+
+def _render_node_to_tex(node):
+  if type(node) is str:
+    return node
+  content = _render_content_to_tex(node)
+
+  if node.get("type") in _block_tags:
+    tmpl_path = os.path.dirname(os.path.realpath(__file__))
+    env = Environment(loader=FileSystemLoader(tmpl_path))
+    template = env.get_template("block.tex")
+    return template.render({"block": _dict_merge(node, {"content": content})})
+  if node.get("type") == "paragraph":
+    return "%s\n" % content
+  if node.get("type") == "bold":
+    return "\\textbf{%s}" % content
+  if node.get("type") == "italic":
+    return "\\emph{%s}" % content
+  if node.get("type") == "definition":
+    return "\\emph{%s}" % content
+  if node.get("type") == "citation":
+    return _render_citation_to_tex(node)
+  if node.get("type") == "term":
+    return _render_term_to_tex(node)
+  return content
+
+def _render_par_to_tex(par):
+  return "".join(_render_node_to_tex(n) for n in par.get("content"))
+
+def texml_to_tex(input):
+  parsed = parse_texml(input)
+
+  tmpl_path = os.path.dirname(os.path.realpath(__file__))
+  env = Environment(loader=FileSystemLoader(tmpl_path))
+  template = env.get_template("template.tex")
+  tex = template.render({
+    "title":   parsed["title"],
+    "author":  parsed["author"],
+    "macros":  parsed["macros"].items(),
+    "pars":   [_dict_merge(p, {"content": _render_par_to_tex(p)}) for p in parsed["body"]["pars"]]})
+  return tex
+
 if __name__ == "__main__":
   if len(sys.argv) < 2:
     print("Please specify input texml file.")
     exit()
-  infile = sys.argv[1]
+
+  if len(sys.argv) < 3:
+    format = "html"
+  elif "html" in sys.argv[1]:
+    format = "html"
+  elif "tex" in sys.argv[1]:
+    format = "tex"
+  else:
+    print("I don\'t understand the format: %s" % format)
+    exit()
+
+  infile = sys.argv[-1]
   try:
     input = open(infile, "r").read()
   except IOError:
     print("Unable to open the file: %s" % infile)
     exit()
-  outfile = os.path.splitext(infile)[0] + ".html"
-  try:
-    open(outfile, "w").write(texml_to_html(input))
-  except IOError:
-    print("Unable to write to file: %s" % outfile)
+
+  if format == "html":
+    html_file = os.path.splitext(infile)[0] + ".html"
+    try:
+      open(html_file, "w").write(texml_to_html(input))
+      print("Created %s" % html_file)
+    except IOError:
+      print("Unable to write to file: %s" % html_file)
+
+  if format == "tex":
+    tex_file = os.path.splitext(infile)[0] + ".tex"
+    try:
+      open(tex_file, "w").write(texml_to_tex(input))
+      print("Created %s" % tex_file)
+    except IOError:
+      print("Unable to write to file: %s" % tex_file)
