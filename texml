@@ -8,7 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 
 _par_tags = ["par"]
 _block_tags = ["p", "def", "rmk", "lem", "prp", "thm", "cor", "prf", "exm"]
-_frmt_tags = ["b", "i", "u", "d", "cite"]
+_inline_tags = ["b", "i", "u", "d", "cite", "term"]
 
 def _dict_merge(d, e):
   return dict(list(d.items()) + list(e.items()))
@@ -21,8 +21,8 @@ def _parse_head(head):
           "macros": dict([(x.attrib.get("name"), x.attrib.get("value"))
                       for x in head.findall("macro")])}
 
-def _parse_frmt_tag(element):
-  "Return the type of a formatting tag (e.g. b => bold)."
+def _parse_inline_tag(element):
+  "Return the type of an inline tag (e.g. b => bold)."
 
   if element.tag == "b":
     return {"type": "bold"}
@@ -36,12 +36,15 @@ def _parse_frmt_tag(element):
     return {"type": "citation",
       "ref": element.attrib.get("ref"),
       "tag": element.attrib.get("tag")}
+  elif element.tag == "term":
+    return {"type": "term",
+      "tag": element.attrib.get("tag")}
 
 def _parse_node(element):
   """
-  Parse a node (block tag or formatting tag).
+  Parse a node (block tag or inline tag).
   Block tags are def, thm, prp, lem, cor, rmk, exm, prf.
-  Formatting tags are b, i, u, d, cite.
+  Inline tags are b, i, u, d, cite, term.
   """
 
   content = (([element.text] if element.text else [])
@@ -50,8 +53,8 @@ def _parse_node(element):
     return {"content": content}
   elif element.tag in _block_tags:
     return {"type": element.tag, "content": content}
-  elif element.tag in _frmt_tags:
-    return _dict_merge(_parse_frmt_tag(element), {"content": content})
+  elif element.tag in _inline_tags:
+    return _dict_merge(_parse_inline_tag(element), {"content": content})
 
 def _parse_body_pars(pars, element):
   if element.tag in _par_tags:
@@ -109,6 +112,27 @@ def _render_citation_to_html(node):
     "url":  url,
     "text": text})
 
+def _render_term_to_html(node):
+  tag = node.get("tag", "")
+  text = _render_content(node)
+
+  tag_parts = tag.split("/")
+  url = ""
+  if len(tag_parts) == 0:
+    url = "#"
+  elif len(tag_parts) == 1:
+    url = "#" + tag_parts[0]
+  else:
+    url = "%s.html#%s" % (tag_parts[0], tag_parts[1])
+
+  tmpl_path = os.path.dirname(os.path.realpath(__file__))
+  env = Environment(loader=FileSystemLoader(tmpl_path))
+  template = env.get_template("term.html")
+  return template.render({
+    "tag":  tag,
+    "url":  url,
+    "text": text})
+
 def _render_node_to_html(node):
   if type(node) is str:
     return node
@@ -128,6 +152,8 @@ def _render_node_to_html(node):
     return "<span class=\"definition\">%s</span>" % content
   if node.get("type") == "citation":
     return _render_citation_to_html(node)
+  if node.get("type") == "term":
+    return _render_term_to_html(node)
   return content
 
 def _render_par_to_html(par):
