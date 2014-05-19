@@ -1,0 +1,15 @@
+<div class="block {{ block.type }}">
+{% if block.type != "p" -%}
+  <span class="type">
+  {% if block.type == "def" -%}Definition{% endif -%}
+  {% if block.type == "rmk" -%}Remark{% endif -%}
+  {% if block.type == "lem" -%}Lemma{% endif -%}
+  {% if block.type == "prp" -%}Proposition{% endif -%}
+  {% if block.type == "cor" -%}Corollary{% endif -%}
+  {% if block.type == "thm" -%}Theorem{% endif -%}
+  {% if block.type == "prf" -%}Proof{% endif -%}
+  {% if block.type == "exm" -%}Example{% endif -%}
+  . &mdash;</span>
+{% endif %}
+  <div class="content">{{ block.content }}</div>
+</div>

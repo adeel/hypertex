@@ -45,22 +45,29 @@
         }
 
         #content {}
-          .para {
+          .par {
             margin: 20px 0;
           }
-            .para .index,
-            .para .type {
+            .par .index,
+            .par .type {
               font-weight: bold;
             }
-            .para .content {
+            .par .content {
               display: inline;
             }
-              .para .content a,
-              .para .content a:visited {
+              .par .content a,
+              .par .content a:visited {
                 color: blue;
               }
-              .para .content .definition {
+              .par .content .definition {
                 font-style: italic;
+              }
+
+              .par .content .block {
+                margin: 12px 0;
+              }
+              .par .content .block:first-child {
+                display: inline;
               }
     </style>
   </head>
@@ -69,22 +76,10 @@
       <h1>{{ title }}</h1>
       <h2>{{ author }}</h2>
       <div id="content">
-{% for para in paras -%}
-        <div class="para {{ para.type }}">{% for tag in para.tags %}<a name="{{ tag }}"></a>{% endfor %}
+{% for par in pars -%}
+        <div class="par {{ par.type }}">{% for tag in par.tags %}<a name="{{ tag }}"></a>{% endfor %}
           <span class="index">{{ loop.index }}.&nbsp;&nbsp;</span>
-{% if para.type and para.type not in ["para", "intro"] -%}
-          <span class="type">
-{% if para.type == "def" %}Definition{% endif -%}
-{% if para.type == "rmk" %}Remark{% endif -%}
-{% if para.type == "lem" %}Lemma{% endif -%}
-{% if para.type == "prp" %}Proposition{% endif -%}
-{% if para.type == "cor" %}Corollary{% endif -%}
-{% if para.type == "thm" %}Theorem{% endif -%}
-{% if para.type == "prf" %}Proof{% endif -%}
-{% if para.type == "ex" %}Example{% endif -%}
-. &mdash;</span>
-{% endif %}
-          <div class="content">{{ para.content }}</div>
+          <div class="content">{{ par.content }}</div>
         </div>
 {% endfor %}
       </div>

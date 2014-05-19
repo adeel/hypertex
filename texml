@@ -6,7 +6,9 @@ from functools import reduce
 from lxml import etree
 from jinja2 import Environment, FileSystemLoader
 
-_para_types = ["intro", "para", "def", "rmk", "lem", "prp", "thm", "cor", "prf", "ex"]
+_par_tags = ["par"]
+_block_tags = ["p", "def", "rmk", "lem", "prp", "thm", "cor", "prf", "exm"]
+_frmt_tags = ["b", "i", "u", "d", "cite"]
 
 def _dict_merge(d, e):
   return dict(list(d.items()) + list(e.items()))
@@ -19,32 +21,48 @@ def _parse_head(head):
           "macros": dict([(x.attrib.get("name"), x.attrib.get("value"))
                       for x in head.findall("macro")])}
 
-def _parse_node(element):
-  a = {"content": ([element.text] if element.text else []) + sum([[_parse_node(child), child.tail or ""] for child in element], [])}
-  if element.tag == "b":
-    a["type"] = "bold"
-  elif element.tag == "i":
-    a["type"] = "italic"
-  elif element.tag == "u":
-    a["type"] = "underline"
-  elif element.tag == "d":
-    a["type"] = "definition"
-  elif element.tag == "cite":
-    a["type"] = "citation"
-    a["ref"] = element.attrib.get("ref")
-    a["tag"] = element.attrib.get("tag")
-  return a
+def _parse_frmt_tag(element):
+  "Return the type of a formatting tag (e.g. b => bold)."
 
-def _parse_body_paras(paras, element):
-  if element.tag in _para_types:
-    return paras + [{
+  if element.tag == "b":
+    return {"type": "bold"}
+  elif element.tag == "i":
+    return {"type": "italic"}
+  elif element.tag == "u":
+    return {"type": "underline"}
+  elif element.tag == "d":
+    return {"type": "definition"}
+  elif element.tag == "cite":
+    return {"type": "citation",
+      "ref": element.attrib.get("ref"),
+      "tag": element.attrib.get("tag")}
+
+def _parse_node(element):
+  """
+  Parse a node (block tag or formatting tag).
+  Block tags are def, thm, prp, lem, cor, rmk, exm, prf.
+  Formatting tags are b, i, u, d, cite.
+  """
+
+  content = (([element.text] if element.text else [])
+    + sum([[_parse_node(child), child.tail or ""] for child in element], []))
+  if element.tag in _par_tags:
+    return {"content": content}
+  elif element.tag in _block_tags:
+    return {"type": element.tag, "content": content}
+  elif element.tag in _frmt_tags:
+    return _dict_merge(_parse_frmt_tag(element), {"content": content})
+
+def _parse_body_pars(pars, element):
+  if element.tag in _par_tags:
+    return pars + [{
       "type":    element.tag,
       "content": [_parse_node(element)],
       "tags":    element.attrib.get("tag", "").split(";")}]
-  return paras
+  return pars
 
 def _parse_body(body):
-  return {"body": {"paras": reduce(_parse_body_paras, body, [])}}
+  return {"body": {"pars": reduce(_parse_body_pars, body, [])}}
 
 def _parse_first_gen(parsed, element):
   if element.tag == "head":
@@ -95,8 +113,13 @@ def _render_node_to_html(node):
   if type(node) is str:
     return node
   content = _render_content(node)
-  if node.get("type") in _para_types:
-    return "<div class=\"para %s\">1.&nbsp;&nbsp;%s</div>" % (node.get("type"), content)
+  if node.get("type") in _block_tags:
+    tmpl_path = os.path.dirname(os.path.realpath(__file__))
+    env = Environment(loader=FileSystemLoader(tmpl_path))
+    template = env.get_template("block.html")
+    return template.render({"block": _dict_merge(node, {"content": content})})
+  if node.get("type") == "paragraph":
+    return "<p>%s</p>" % content
   if node.get("type") == "bold":
     return "<b>%s</b>" % content
   if node.get("type") == "italic":
@@ -107,11 +130,11 @@ def _render_node_to_html(node):
     return _render_citation_to_html(node)
   return content
 
-def _render_para_to_html(para):
-  return "".join(_render_node_to_html(n) for n in para.get("content"))
+def _render_par_to_html(par):
+  return "".join(_render_node_to_html(n) for n in par.get("content"))
 
 def _render_content_to_html(parsed):
-  return "\n".join(_render_node_to_html(para) for para in parsed["body"]["paras"])
+  return "\n".join(_render_node_to_html(par) for par in parsed["body"]["pars"])
 
 def _escape_macros(macros):
   return [(k, v.replace("\\", "\\\\")) for (k, v) in macros.items()]
@@ -126,7 +149,7 @@ def texml_to_html(input):
     "title":   parsed["title"],
     "author":  parsed["author"],
     "macros":  _escape_macros(parsed["macros"]),
-    "paras":   [_dict_merge(p, {"content": _render_para_to_html(p)}) for p in parsed["body"]["paras"]]})
+    "pars":   [_dict_merge(p, {"content": _render_par_to_html(p)}) for p in parsed["body"]["pars"]]})
   return html
 
 if __name__ == "__main__":
@@ -140,7 +163,7 @@ if __name__ == "__main__":
     print("Unable to open the file: %s" % infile)
     exit()
   outfile = os.path.splitext(infile)[0] + ".html"
-  # try:
-  open(outfile, "w").write(texml_to_html(input))
-  # except IOError:
-    # print("Unable to write to file: %s" % outfile)
+  try:
+    open(outfile, "w").write(texml_to_html(input))
+  except IOError:
+    print("Unable to write to file: %s" % outfile)
