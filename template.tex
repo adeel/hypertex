@@ -37,11 +37,11 @@
   }
 \makeatother
 {% endraw %}
-{{ "\\author{" }}{{ author }}{{ "}" }}
-{{ "\\title{\\uppercase{" }}{{ title }}{{ "}}" }}
+{{ "\\author{" + author + "}" }}
+{{ "\\title{\\uppercase{" + title + "}}" }}
 
 {% for k,v in macros -%}
-{{ "\\newcommand{\\" }}{{ k }}{{ "}{" }}{{ v }}{{ "}" }}
+{{ "\\newcommand{\\" + k + "}{" + v + "}" }}
 {% endfor %}
 
 {% raw %}
@@ -52,7 +52,5 @@
 {% endraw %}
 {% for par in pars -%}\para{% for tag in par.tags -%}{% if tag -%}{{ "\\label{" }}{{ tag }}{{ "}" }}{% endif %}{% endfor %}{{ par.content }}
 {% endfor %}
-{% raw %}
 
 \end{document}
-{% endraw %}

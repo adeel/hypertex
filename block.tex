@@ -1,1 +1,1 @@
-{% if block.type == "p" -%}{{ block.content }}{% else -%}\begin{{ "{" }}para{{ block.type }}{{ "}" }}{{ block.content }}\end{{ "{" }}para{{ block.type }}{{ "}" }}{% endif %}
+{% if block.type == "p" -%}{{ block.content }}{% else -%}\begin{{ "{" }}para{{ block.type + "}" + block.content }}\end{{ "{" }}para{{ block.type + "}" }}{% endif %}
