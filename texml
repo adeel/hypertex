@@ -55,6 +55,7 @@ def _parse_node(element):
     return {"type": element.tag, "content": content}
   elif element.tag in _inline_tags:
     return _dict_merge(_parse_inline_tag(element), {"content": content})
+  return {"content": content}
 
 def _parse_body_pars(pars, element):
   if element.tag in _par_tags:
