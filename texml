@@ -10,16 +10,36 @@ _par_tags = ["par"]
 _block_tags = ["p", "def", "rmk", "lem", "prp", "thm", "cor", "prf", "exm"]
 _inline_tags = ["b", "i", "u", "d", "cite", "term"]
 
+def register_error(message):
+  print "Error: %s" % message
+
 def _dict_merge(d, e):
   return dict(list(d.items()) + list(e.items()))
+
+def _register_macros_from_file(macros, fname):
+  if not os.path.isfile(fname):
+    register_error("The macro file %s was not found and will not be loaded." % fname)
+    return macros
+  try:
+    src = open(fname, "r").read()
+  except IOError:
+    register_error("The macro file %s could not be read and will not be loaded." % fname)
+    return macros
+  root = etree.fromstring(src)
+  return _dict_merge(macros, dict([(x.attrib.get("name"), x.attrib.get("value"))
+    for x in root.findall("macro")]))
 
 def _parse_head(head):
   title = head.find("title")
   author = head.find("author")
+  macros = dict([(x.attrib.get("name"), x.attrib.get("value"))
+    for x in head.findall("macro")])
+  macro_files = [x.attrib.get("src", "") for x in head.findall("macros")]
+  macros = reduce(_register_macros_from_file, macro_files, macros)
+
   return {"title":  title.text if title is not None else "",
           "author": author.text if author is not None else "",
-          "macros": dict([(x.attrib.get("name"), x.attrib.get("value"))
-                      for x in head.findall("macro")])}
+          "macros": macros}
 
 def _parse_inline_tag(element):
   "Return the type of an inline tag (e.g. b => bold)."
@@ -232,7 +252,7 @@ def texml_to_tex(input):
 
 if __name__ == "__main__":
   if len(sys.argv) < 2:
-    print("Please specify input texml file.")
+    register_error("Please specify input texml file.")
     exit()
 
   if len(sys.argv) < 3:
@@ -242,14 +262,14 @@ if __name__ == "__main__":
   elif "tex" in sys.argv[1]:
     format = "tex"
   else:
-    print("I don\'t understand the format: %s" % format)
+    register_error("I don\'t understand the format: %s" % format)
     exit()
 
   infile = sys.argv[-1]
   try:
     input = open(infile, "r").read()
   except IOError:
-    print("Unable to open the file: %s" % infile)
+    register_error("Unable to open the file: %s" % infile)
     exit()
 
   if format == "html":
@@ -258,7 +278,7 @@ if __name__ == "__main__":
       open(html_file, "w").write(texml_to_html(input))
       print("Created %s" % html_file)
     except IOError:
-      print("Unable to write to file: %s" % html_file)
+      register_error("Unable to write to file: %s" % html_file)
 
   if format == "tex":
     tex_file = os.path.splitext(infile)[0] + ".tex"
@@ -266,4 +286,4 @@ if __name__ == "__main__":
       open(tex_file, "w").write(texml_to_tex(input))
       print("Created %s" % tex_file)
     except IOError:
-      print("Unable to write to file: %s" % tex_file)
+      register_error("Unable to write to file: %s" % tex_file)
