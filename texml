@@ -389,6 +389,5 @@ if __name__ == "__main__":
 
   try:
     open(outfile, "w").write(output)
-    print("Created %s" % outfile)
   except IOError:
     register_error("Unable to write to file: %s" % outfile)
