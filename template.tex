@@ -50,7 +50,7 @@
 \maketitle
 
 {% endraw %}
-{% for par in pars -%}\para{% for tag in par.tags -%}{% if tag -%}{{ "\\label{" }}{{ tag }}{{ "}" }}{% endif %}{% endfor %}{{ par.content }}
+{% for par in pars -%}{% set n = loop.index %}\para{{ "\hypertarget{" }}{{ n }}{{ "}{}" }}{% for tag in par.tags -%}{% if tag -%}{{ "\\label{" }}{{ tag }}{{ "}" }}{% endif %}{% endfor %}{{ par.content }}
 {% endfor %}
 
 \end{document}

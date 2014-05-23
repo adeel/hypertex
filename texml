@@ -100,43 +100,74 @@ def parse_texml(input):
   root = etree.fromstring(input)
   return reduce(_parse_first_gen, root, {})
 
-def _render_content_to_html(node):
+def _render_content_to_html(node, parsed):
   if type(node) is str:
     return node
   content = node.get("content", "")
   if type(content) is list:
-    content = "".join(_render_node_to_html(n) for n in content)
+    content = "".join(_render_node_to_html(n, parsed) for n in content)
   return content
 
-def _render_citation_to_html(node):
+def _parse_tag(tag):
+  doc = ""
+  partag = ""
+  tag_parts = tag.split("/")
+  if len(tag_parts) == 1:
+    partag = tag_parts[0]
+  else:
+    doc = tag_parts[0]
+    partag = tag_parts[1]
+  return (doc, partag)
+
+def _get_number_of_par(tag, doc, parsed):
+  """
+  Get the number of the par with tag `tag` in the document with name `doc`.
+  Takes also the parameter `parsed`, which should be the result of parsing
+  the current document, just in order to avoid re-parsing it.
+  """
+  if doc:
+    src = open(doc + ".xml", "r").read()
+    parsed = parse_texml(src)
+  doc_tags = [p.get("tags", []) for p in parsed.get("body").get("pars")]
+  for (n, ts) in enumerate(doc_tags):
+    if tag in ts:
+      return n + 1
+  register_error("Unable to find tag %s in document '%s'" % (tag, doc))
+  return 0
+
+def _render_citation_to_html(node, parsed):
   tag = node.get("tag", "")
   ref = node.get("ref", "")
   url = ""
-  text = _render_content_to_html(node)
+  num = 0
+  doc = ""
+  text = _render_content_to_html(node, parsed)
   if tag:
-    tag_parts = tag.split("/")
-    if len(tag_parts) == 0:
-      url = "#"
-    elif len(tag_parts) == 1:
-      url = "#" + tag_parts[0]
+    (doc, partag) = _parse_tag(tag)
+    num = _get_number_of_par(partag, doc, parsed)
+    url = "#"
+    if doc:
+      url = "%s.html#%d" % (doc, num)
     else:
-      url = "%s.html#%s" % (tag_parts[0], tag_parts[1])
-    if not text.strip():
-      text = tag
+      url = "#%d" % num
   elif ref:
+    # TODO
     url = "#%s" % ref
+
   tmpl_path = os.path.dirname(os.path.realpath(__file__))
   env = Environment(loader=FileSystemLoader(tmpl_path))
   template = env.get_template("citation.html")
   return template.render({
     "tag":  tag,
+    "doc":  doc,
+    "num":  num,
     "ref":  ref,
     "url":  url,
     "text": text})
 
-def _render_term_to_html(node):
+def _render_term_to_html(node, parsed):
   tag = node.get("tag", "")
-  text = _render_content_to_html(node)
+  text = _render_content_to_html(node, parsed)
 
   tag_parts = tag.split("/")
   url = ""
@@ -155,10 +186,10 @@ def _render_term_to_html(node):
     "url":  url,
     "text": text})
 
-def _render_node_to_html(node):
+def _render_node_to_html(node, parsed):
   if type(node) is str:
     return node
-  content = _render_content_to_html(node)
+  content = _render_content_to_html(node, parsed)
   if node.get("type") in _block_tags:
     tmpl_path = os.path.dirname(os.path.realpath(__file__))
     env = Environment(loader=FileSystemLoader(tmpl_path))
@@ -173,13 +204,13 @@ def _render_node_to_html(node):
   if node.get("type") == "definition":
     return "<span class=\"definition\">%s</span>" % content
   if node.get("type") == "citation":
-    return _render_citation_to_html(node)
+    return _render_citation_to_html(node, parsed)
   if node.get("type") == "term":
-    return _render_term_to_html(node)
+    return _render_term_to_html(node, parsed)
   return content
 
-def _render_par_to_html(par):
-  return "".join(_render_node_to_html(n) for n in par.get("content"))
+def _render_par_to_html(par, parsed):
+  return "".join(_render_node_to_html(n, parsed) for n in par.get("content"))
 
 def _escape_macros(macros):
   return [(k, v.replace("\\", "\\\\")) for (k, v) in macros.items()]
@@ -190,31 +221,60 @@ def texml_to_html(input):
   tmpl_path = os.path.dirname(os.path.realpath(__file__))
   env = Environment(loader=FileSystemLoader(tmpl_path))
   template = env.get_template("template.html")
+  pars = [_dict_merge(p, {"content": _render_par_to_html(p, parsed)})
+    for p in parsed["body"]["pars"]]
   html = template.render({
     "title":   parsed["title"],
     "author":  parsed["author"],
     "macros":  _escape_macros(parsed["macros"]),
-    "pars":   [_dict_merge(p, {"content": _render_par_to_html(p)}) for p in parsed["body"]["pars"]]})
+    "pars":    pars})
   return html
 
-def _render_content_to_tex(node):
+def _render_content_to_tex(node, parsed):
   if type(node) is str:
     return node
   content = node.get("content", "")
   if type(content) is list:
-    content = "".join(_render_node_to_tex(n) for n in content)
+    content = "".join(_render_node_to_tex(n, parsed) for n in content)
   return content
 
-def _render_citation_to_tex(node):
-  return _render_content_to_tex(node)
+def _render_citation_to_tex(node, parsed):
+  tag = node.get("tag", "")
+  ref = node.get("ref", "")
+  url = ""
+  num = 0
+  doc = ""
+  text = _render_content_to_html(node, parsed)
+  if tag:
+    (doc, partag) = _parse_tag(tag)
+    num = _get_number_of_par(partag, doc, parsed)
+    url = "#"
+    if doc:
+      url = "%s.pdf#%d" % (doc, num)
+    else:
+      url = "#%d" % num
+  elif ref:
+    # TODO
+    url = "#%s" % ref
 
-def _render_term_to_tex(node):
-  return _render_content_to_tex(node)
+  tmpl_path = os.path.dirname(os.path.realpath(__file__))
+  env = Environment(loader=FileSystemLoader(tmpl_path))
+  template = env.get_template("citation.tex")
+  return template.render({
+    "tag":  tag,
+    "doc":  doc,
+    "num":  str(num),
+    "ref":  ref,
+    "url":  url,
+    "text": text})
 
-def _render_node_to_tex(node):
+def _render_term_to_tex(node, parsed):
+  return _render_content_to_tex(node, parsed)
+
+def _render_node_to_tex(node, parsed):
   if type(node) is str:
     return node
-  content = _render_content_to_tex(node)
+  content = _render_content_to_tex(node, parsed)
 
   if node.get("type") in _block_tags:
     tmpl_path = os.path.dirname(os.path.realpath(__file__))
@@ -230,13 +290,13 @@ def _render_node_to_tex(node):
   if node.get("type") == "definition":
     return "\\emph{%s}" % content
   if node.get("type") == "citation":
-    return _render_citation_to_tex(node)
+    return _render_citation_to_tex(node, parsed)
   if node.get("type") == "term":
-    return _render_term_to_tex(node)
+    return _render_term_to_tex(node, parsed)
   return content
 
-def _render_par_to_tex(par):
-  return "".join(_render_node_to_tex(n) for n in par.get("content"))
+def _render_par_to_tex(par, parsed):
+  return "".join(_render_node_to_tex(n, parsed) for n in par.get("content"))
 
 def texml_to_tex(input):
   parsed = parse_texml(input)
@@ -248,7 +308,7 @@ def texml_to_tex(input):
     "title":   parsed["title"],
     "author":  parsed["author"],
     "macros":  parsed["macros"].items(),
-    "pars":   [_dict_merge(p, {"content": _render_par_to_tex(p)}) for p in parsed["body"]["pars"]]})
+    "pars":   [_dict_merge(p, {"content": _render_par_to_tex(p, parsed)}) for p in parsed["body"]["pars"]]})
   return tex
 
 if __name__ == "__main__":

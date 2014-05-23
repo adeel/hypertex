@@ -1,0 +1,1 @@
+{% if text %}\href{{ "{" + url + "}{" + text + "}" }}{% elif doc %}(\href{{ "{" + url + "}{" + doc + "/" + num + "}" }}){% else %}(\href{{ "{" + url + "}{" + num + "}" }}){% endif %}

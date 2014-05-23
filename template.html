@@ -83,7 +83,7 @@
       <h2>{{ author }}</h2>
       <div id="content">
 {% for par in pars -%}
-        <div class="{{ par.type }}">{% for tag in par.tags %}<a name="{{ tag }}"></a>{% endfor %}
+        <div class="{{ par.type }}" id="{{ loop.index }}">{% for tag in par.tags %}<a name="{{ tag }}"></a>{% endfor %}
           <span class="index">{{ loop.index }}.&nbsp;&nbsp;</span>
           <div class="content">{{ par.content }}</div>
         </div>

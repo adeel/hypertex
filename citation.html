@@ -1,1 +1,1 @@
-<span class="citation"><a href="{{ url }}">{{ text }}</a></span>
+<span class="citation">{% if text %}<a href="{{ url }}">{{ text }}</a>{% elif doc %}(<a href="{{ url }}">{{ doc }}/{{ num }}</a>){% else %}(<a href="{{ url }}">{{ num }}</a>){% endif %}</span>
