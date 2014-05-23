@@ -382,11 +382,17 @@ if __name__ == "__main__":
   except IOError:
     parser.error("Unable to open the file: %s" % options.infile)
 
+  cwd = os.getcwd()
+  # this is so that opening other src files will work correctly...
+  os.chdir(os.path.dirname(options.infile))
+
   if format == "html":
     output = texml_to_html(input)
   elif format == "tex":
     output = texml_to_tex(input)
 
+  os.chdir(cwd)
+  
   try:
     open(outfile, "w").write(output)
   except IOError:
