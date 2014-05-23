@@ -1,0 +1,21 @@
+<document>
+
+<head>
+  <title>Simplicial sets</title>
+
+  <macro name="Set" value="\mathrm{Set}" />
+  <macro name="sSet" value="\mathrm{sSet}" />
+</head>
+
+<body>
+
+<par>
+<def>
+A <d>simplicial set</d> is a <term tag="simpobj/simplicial object">simplicial object</term> in the category $\Set$ of sets.
+</def>
+
+<p>We will write $\sSet$ for the category of simplicial sets.</p>
+</par>
+
+</body>
+</document>
