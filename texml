@@ -5,6 +5,7 @@ import os.path
 from functools import reduce
 from lxml import etree
 from jinja2 import Environment, FileSystemLoader
+from optparse import OptionParser
 
 _par_tags = ["par"]
 _block_tags = ["p", "def", "rmk", "lem", "prp", "thm", "cor", "prf", "exm"]
@@ -251,39 +252,44 @@ def texml_to_tex(input):
   return tex
 
 if __name__ == "__main__":
-  if len(sys.argv) < 2:
-    register_error("Please specify input texml file.")
-    exit()
+  parser = OptionParser()
 
-  if len(sys.argv) < 3:
-    format = "html"
-  elif "html" in sys.argv[1]:
-    format = "html"
-  elif "tex" in sys.argv[1]:
-    format = "tex"
-  else:
-    register_error("I don\'t understand the format: %s" % format)
-    exit()
+  parser.add_option("-i", "--input", dest="infile",
+    help="input file")
+  parser.add_option("-o", "--output", dest="outfile",
+    help="output file")
+  parser.add_option("-f", "--format", dest="format",
+    help="output format (tex or html)")
 
-  infile = sys.argv[-1]
+  (options, args) = parser.parse_args()
+
+  if not options.infile or not os.path.isfile(options.infile):
+    parser.error("Please enter a valid input file.")
+  if not (options.outfile or options.format):
+    parser.error("Please enter either an output file or an output format.")
+
+  format = options.format
+  if not format:
+    format = os.path.splitext(options.outfile)[1].strip(".")
+  if format not in ["tex", "html"]:
+    parser.error("Please choose a valid output format (tex or html).")
+
+  outfile = options.outfile
+  if not outfile:
+    outfile = os.path.splitext(options.infile)[0] + "." + format
+
   try:
-    input = open(infile, "r").read()
+    input = open(options.infile, "r").read()
   except IOError:
-    register_error("Unable to open the file: %s" % infile)
-    exit()
+    parser.error("Unable to open the file: %s" % options.infile)
 
   if format == "html":
-    html_file = os.path.splitext(infile)[0] + ".html"
-    try:
-      open(html_file, "w").write(texml_to_html(input))
-      print("Created %s" % html_file)
-    except IOError:
-      register_error("Unable to write to file: %s" % html_file)
+    output = texml_to_html(input)
+  elif format == "tex":
+    output = texml_to_tex(input)
 
-  if format == "tex":
-    tex_file = os.path.splitext(infile)[0] + ".tex"
-    try:
-      open(tex_file, "w").write(texml_to_tex(input))
-      print("Created %s" % tex_file)
-    except IOError:
-      register_error("Unable to write to file: %s" % tex_file)
+  try:
+    open(outfile, "w").write(output)
+    print("Created %s" % outfile)
+  except IOError:
+    register_error("Unable to write to file: %s" % outfile)
