@@ -1,6 +1,17 @@
-TeXML is an XML-based markup language that I use for writing mathematical notes and articles.
+HyperTeX is, roughly speaking, a hyperlink-enhanced version of LaTeX.
+More precisely, HyperTeX is an XML-based markup language designed for
+writing collections of inter-linked mathematical documents.
 
-The script texml.py converts .txml files to HTML or LaTeX files, using MathJax to render math in the first case.
-It is currently in a very primitive state.
-The files template.html and template.tex can be modified as desired, to change the layouts and styling.
-See the tests/ folder for an example.
+This repository contains a Python package, called hypertex, which is
+able to parse HyperTeX documents and render them in HTML or LaTeX
+format.  The HTML rendering makes use of MathJax to display mathematical
+formulas.
+
+The HyperTeX syntax has not been finalized yet and a complete
+description is at the moment unavailable.  The main interesting feature
+is the <cite> tag, which allows linking to other HyperTeX documents
+(and even to specific paragraphs within them), or to external
+references.  For example,
+
+    ..., so the claim follows from the <cite tag="intersection-
+    theory/GRR">Grothendieck-Riemann-Roch theorem</cite>.
