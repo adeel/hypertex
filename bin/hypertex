@@ -1,0 +1,49 @@
+#!/usr/bin/env python2
+
+import os.path
+from optparse import OptionParser
+import hypertex
+
+if __name__ == "__main__":
+  op = OptionParser()
+
+  op.add_option("-i", "--input", dest="infile",
+    help="input file")
+  op.add_option("-o", "--output", dest="outfile",
+    help="output file")
+  op.add_option("-f", "--format", dest="format",
+    help="output format (tex or html)")
+
+  (options, args) = op.parse_args()
+
+  if not options.infile or not os.path.isfile(options.infile):
+    op.error("Please enter a valid input file.")
+  if not (options.outfile or options.format):
+    op.error("Please enter either an output file or an output format.")
+
+  format = options.format
+  if not format:
+    format = os.path.splitext(options.outfile)[1].strip(".")
+  if format not in ["tex", "html"]:
+    op.error("Please choose a valid output format (tex or html).")
+
+  outfile = options.outfile
+  if not outfile:
+    outfile = os.path.splitext(options.infile)[0] + "." + format
+
+  try:
+    input = open(options.infile, "r").read()
+  except IOError:
+    op.error("Unable to open the file: %s" % options.infile)
+
+  cwd = os.getcwd()
+  # this is so that opening other src files will work correctly...
+  os.chdir(os.path.dirname(options.infile))
+
+  if format == "html":
+    output = hypertex.render_html(input)
+  elif format == "tex":
+    output = hypertex.render_tex(input)
+
+  os.chdir(cwd)  
+  open(outfile, "w").write(output)
