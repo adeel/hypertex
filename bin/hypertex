@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
-import os.path
+import os, os.path
+import shutil
 import codecs
 from optparse import OptionParser
 import hypertex
@@ -43,8 +44,17 @@ if __name__ == "__main__":
 
   if format == "html":
     output = hypertex.render_html(input)
+    if output["imgs"]:
+      os.chdir(cwd)
+      imgdir = os.path.dirname(outfile) + "/imgs"
+      if not os.path.exists(imgdir):
+        os.mkdir(imgdir)
+      for i in output["imgs"]:
+        shutil.copy(i, imgdir)
+        os.remove(i)
+    output = output["html"]
   elif format == "tex":
     output = hypertex.render_tex(input)
 
-  os.chdir(cwd)  
+  os.chdir(cwd)
   codecs.open(outfile, encoding="utf8", mode="w").write(output)

@@ -54,12 +54,17 @@ def _parse_inline_tag(element):
   elif element.tag == "term":
     return {"type": "term",
       "tag": element.attrib.get("tag")}
+  elif element.tag == "frml":
+    img = False
+    if element.attrib.get("img"):
+      img = True
+    return {"type": "formula", "img": img}
 
 def _parse_node(element):
   """
   Parse a node (block tag or inline tag).
   Block tags are def, thm, prp, lem, cor, rmk, exm, prf.
-  Inline tags are b, i, u, d, cite, term.
+  Inline tags are b, i, u, d, cite, term, frml.
   """
 
   content = (([element.text] if element.text else [])

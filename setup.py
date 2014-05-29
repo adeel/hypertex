@@ -10,7 +10,7 @@ setup(
   packages=['hypertex', 'hypertex.render'],
   scripts=['bin/hypertex'],
   package_data={
-    'hypertex.render': ['html/*.html', 'tex/*.tex']
+    'hypertex.render': ['html/*', 'tex/*']
   },
   install_requires=['Jinja2', 'lxml'],
   license='MIT',

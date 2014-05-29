@@ -19,12 +19,19 @@ A <d>simplicial set</d> is a <term tag="simpobj/simplicial object">simplicial ob
 
 <par>
 <p>
-This paragraph is for testing angle brackets &amp; ampersands.
+This paragraph is for testing angle brackets &amp; commutative diagrams.
 </p>
 
 <p>
 Recall that $1 < 2$; similarly $3 > 2$.
- \[ \left< a,b \right> \]
+
+<frml img="1">
+\begin{tikzcd}
+  X \arrow{r}\arrow{d} &amp; Y\arrow{d} \\
+  Y \arrow{r} &amp; Z
+\end{tikzcd}
+</frml>
+
 The following is an em dash: &#8212;.
 </p>
 </par>

@@ -76,6 +76,9 @@ def _render_term(node, parsed):
 def _render_term(node, parsed):
   return _render_content(node, parsed)
 
+def _render_formula(node, parsed):
+  return "\\[%s\\]" % _render_content(node, parsed)
+
 def _render_node(node, parsed):
   if type(node) in (str, unicode):
     return node
@@ -96,6 +99,8 @@ def _render_node(node, parsed):
     return _render_citation(node, parsed)
   if node.get("type") == "term":
     return _render_term(node, parsed)
+  if node.get("type") == "formula":
+    return _render_formula(node, parsed)
   return content
 
 def _render_par(par, parsed):

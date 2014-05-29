@@ -76,6 +76,11 @@
                 background-color: #FAF0D9;
                 color: #000;
               }
+
+          .formula {
+            text-align: center;
+            margin: 20px 0;
+          }
     </style>
   </head>
   <body>
@@ -107,7 +112,7 @@ A <span class="definition">simplicial set</span> is a <span class="term"><a href
 <div class="block p">
 
   <div class="content">
-This paragraph is for testing angle brackets & ampersands.
+This paragraph is for testing angle brackets & commutative diagrams.
 </div>
 </div>
 
@@ -115,7 +120,14 @@ This paragraph is for testing angle brackets & ampersands.
 
   <div class="content">
 Recall that $1 < 2$; similarly $3 > 2$.
- \[ \left< a,b \right> \]
+
+<div class="formula"><img src="imgs/00c3bd1e6d0a101cd76eced9ab1d434f.png" alt="
+\begin{tikzcd}
+  X \arrow{r}\arrow{d} & Y\arrow{d} \\
+  Y \arrow{r} & Z
+\end{tikzcd}
+" /></div>
+
 The following is an em dash: —.
 </div>
 </div>
