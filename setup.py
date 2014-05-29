@@ -1,4 +1,4 @@
-from distutils2.core import setup
+from distutils.core import setup
 
 setup(
   name='hypertex',
@@ -12,7 +12,7 @@ setup(
   package_data={
     'hypertex.render': ['html/*.html', 'tex/*.tex']
   },
-  install_requires=['Jinja2', 'lxml', ],
+  install_requires=['Jinja2', 'lxml'],
   license='MIT',
   classifiers=[
     'Development Status :: 4 - Beta',

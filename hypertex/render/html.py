@@ -10,7 +10,7 @@ from hypertex.util import dict_merge
 temp_env = Environment(loader=PackageLoader("hypertex.render", "html"))
 
 def _render_content(node, parsed):
-  if type(node) is str:
+  if type(node) in (str, unicode):
     return node
   content = node.get("content", "")
   if type(content) is list:
@@ -75,6 +75,8 @@ def _render_term(node, parsed):
 
 def _render_node(node, parsed):
   if type(node) is str:
+    return node
+  if type(node) is unicode:
     return node
   content = _render_content(node, parsed)
   if node.get("type") in BLOCK_TAGS:

@@ -1,6 +1,7 @@
 __name__ = "parser"
 
 from functools import reduce
+import re
 from lxml import etree
 
 from hypertex import render
@@ -89,7 +90,17 @@ def _parse_first_gen(parsed, element):
     return dict_merge(parsed, _parse_body(element))
   return parsed
 
+def _fix_angle_brackets(htex):
+  """
+  A hack to make sure lxml doesn't complain about angle brackets
+  that are not part of XML tags.
+  """
+  htex = re.sub(r"<(\s+)", r"&lt;\1", htex)
+  htex = re.sub(r"([^a-z\"\/]+)>", r"\1&gt;", htex)
+  return htex
+
 def parse(htex):
+  htex = _fix_angle_brackets(htex)
   root = etree.fromstring(htex)
   return reduce(_parse_first_gen, root, {})
 

@@ -17,5 +17,17 @@ A <d>simplicial set</d> is a <term tag="simpobj/simplicial object">simplicial ob
 <p>We will write $\sSet$ for the category of simplicial sets.</p>
 </par>
 
+<par>
+<p>
+This paragraph is for testing angle brackets &amp; ampersands.
+</p>
+
+<p>
+Recall that $1 < 2$; similarly $3 > 2$.
+ \[ \left< a,b \right> \]
+The following is an em dash: &#8212;.
+</p>
+</par>
+
 </body>
 </document>

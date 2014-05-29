@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import os.path
+import codecs
 from optparse import OptionParser
 import hypertex
 
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     outfile = os.path.splitext(options.infile)[0] + "." + format
 
   try:
-    input = open(options.infile, "r").read()
+    input = codecs.open(options.infile, encoding="utf8", mode="r").read()
   except IOError:
     op.error("Unable to open the file: %s" % options.infile)
 
@@ -46,4 +47,4 @@ if __name__ == "__main__":
     output = hypertex.render_tex(input)
 
   os.chdir(cwd)  
-  open(outfile, "w").write(output)
+  codecs.open(outfile, encoding="utf8", mode="w").write(output)

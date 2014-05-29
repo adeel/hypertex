@@ -25,10 +25,12 @@
   \end{center}
   \par
   %\vfil
+  {% endraw %}{% if author -%}
   \begin{center}
     \emph{by } \normalfont\@author\par
     %\ \\ \normalfont\@date\par
   \end{center}
+  {% endif %}{% raw %}
   %\vfil
   %\vfil
   %\vfil
@@ -44,13 +46,10 @@
 {{ "\\newcommand{\\" + k + "}{" + v + "}" }}
 {% endfor %}
 
-{% raw %}
 \begin{document}
 
 \maketitle
 
-{% endraw %}
 {% for par in pars -%}{% set n = loop.index %}\para{{ "\hypertarget{" }}{{ n }}{{ "}{}" }}{% for tag in par.tags -%}{% if tag -%}{{ "\\label{" }}{{ tag }}{{ "}" }}{% endif %}{% endfor %}{{ par.content }}
 {% endfor %}
-
 \end{document}

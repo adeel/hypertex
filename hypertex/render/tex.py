@@ -10,7 +10,7 @@ from hypertex.util import dict_merge
 tmpl_env = Environment(loader=PackageLoader("hypertex.render", "tex"))
 
 def _render_content(node, parsed):
-  if type(node) is str:
+  if type(node) in (str, unicode):
     return node
   content = node.get("content", "")
   if type(content) is list:
@@ -77,7 +77,7 @@ def _render_term(node, parsed):
   return _render_content(node, parsed)
 
 def _render_node(node, parsed):
-  if type(node) is str:
+  if type(node) in (str, unicode):
     return node
   content = _render_content(node, parsed)
 
