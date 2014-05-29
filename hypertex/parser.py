@@ -1,5 +1,6 @@
 __name__ = "parser"
 
+import os
 from functools import reduce
 import re
 from lxml import etree
@@ -101,7 +102,7 @@ def _fix_angle_brackets(htex):
   that are not part of XML tags.
   """
   htex = re.sub(r"<(\s+)", r"&lt;\1", htex)
-  htex = re.sub(r"([^a-z\"\/]+)>", r"\1&gt;", htex)
+  htex = re.sub(r"([^a-z\"\/\-]+)>", r"\1&gt;", htex)
   return htex
 
 def parse(htex):
