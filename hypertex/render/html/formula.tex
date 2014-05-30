@@ -1,6 +1,9 @@
 \documentclass[a4paper,12pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{aky-math}
+{% for k,v in macros -%}
+{{ "\\newcommand{\\" + k + "}{" + v + "}" }}
+{% endfor %}
 \pagestyle{empty}
 \begin{document}
 

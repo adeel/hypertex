@@ -87,27 +87,40 @@ def _render_term(node, parsed, imgs):
     "text": text})
   return {"content": content, "imgs": imgs}
 
-def _compile_formula_to_pdf(formula):
+def _render_formula_as_pdf(formula, macros):
   "Takes a LaTeX formula and returns a path to a PDF."
+  formula = formula.strip()
   template = temp_env.get_template("formula.tex")
-  tex = template.render({"formula": formula})
+  tex = template.render({
+    "formula": formula,
+    "macros":  macros.items()})
   (f, path) = tempfile.mkstemp()
   codecs.open(path, encoding="utf8", mode="w").write(tex)
   
-  subprocess.check_output(["pdflatex",
+  p = subprocess.Popen(["pdflatex",
     "-interaction=batchmode", "-output-dir=%s" % os.path.dirname(path),
-    path])
+    path],
+    stdout=subprocess.PIPE)
+  out, err = p.communicate()
+  if err:
+    print err
   return path + ".pdf"
 
-def _render_formula_as_image(formula):
+def _render_formula_as_image(formula, macros):
   "Takes a LaTeX formula and returns a path to a PNG."
-  pdfpath = _compile_formula_to_pdf(formula)
+  pdfpath = _render_formula_as_pdf(formula, macros)
 
   dir = tempfile.mkdtemp()
   pngpath = dir + "/" + hashlib.md5(formula).hexdigest() + ".png"
-  subprocess.check_output(["convert",
+  p = subprocess.Popen(["convert",
     "-density", "120", "-trim", "-transparent", "#FFFFFF",
-    pdfpath, pngpath])
+    pdfpath, pngpath],
+    stdout=subprocess.PIPE)
+  out, err = p.communicate()
+  print out
+  print "---"
+  if err:
+    print err
 
   return pngpath
 
@@ -120,7 +133,7 @@ def _render_formula(node, parsed, imgs):
   as_img = node.get("img")
   content = ""
   if as_img:
-    img_path = _render_formula_as_image(formula)
+    img_path = _render_formula_as_image(formula, parsed["macros"])
     if img_path:
       imgs.add(img_path)
       future_path = "imgs/" + os.path.basename(img_path)
