@@ -75,7 +75,11 @@ def _parse_node(element):
   elif element.tag in BLOCK_TAGS:
     return {"type": element.tag, "content": content}
   elif element.tag in INLINE_TAGS:
-    return dict_merge(_parse_inline_tag(element), {"content": content})
+    x = dict_merge(_parse_inline_tag(element), {"content": content})
+    if x["type"] == "formula":
+      # strip whitespace from beginning/end of formulas
+      x = dict_merge(x, {"content": map(str.strip, x["content"])})
+    return x
   return {"content": content}
 
 def _parse_body_pars(pars, element):

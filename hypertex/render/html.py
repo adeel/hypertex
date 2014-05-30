@@ -89,7 +89,6 @@ def _render_term(node, parsed, imgs):
 
 def _render_formula_as_pdf(formula, macros):
   "Takes a LaTeX formula and returns a path to a PDF."
-  formula = formula.strip()
   template = temp_env.get_template("formula.tex")
   tex = template.render({
     "formula": formula,
