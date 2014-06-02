@@ -66,6 +66,11 @@ def _parse_inline_tag(element):
     return {"type": "unord_list"}
   elif element.tag == "li":
     return {"type": "list_item"}
+  elif element.tag == "sub":
+    return {"type": "subscript"}
+  elif element.tag == "sup":
+    return {"type": "superscript"}
+
 
 def _parse_node(element):
   """

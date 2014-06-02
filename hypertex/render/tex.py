@@ -91,6 +91,12 @@ def _render_list_item(node, parsed):
   content = _render_content(node, parsed)
   return "\\item %s\n" % content
 
+def _render_subscript(node, parsed):
+  return "\\textsubscript{%s}" % _render_content(node, parsed)
+
+def _render_superscript(node, parsed):
+  return "\\textsuperscript{%s}</sup>" % _render_content(node, parsed)
+
 def _render_node(node, parsed):
   if type(node) in (str, unicode):
     return node
@@ -119,6 +125,10 @@ def _render_node(node, parsed):
     return _render_unord_list(node, parsed)
   if node.get("type") == "list_item":
     return _render_list_item(node, parsed)
+  if node.get("type") == "subscript":
+    return _render_subscript(node, parsed)
+  if node.get("type") == "superscript":
+    return _render_superscript(node, parsed)
   return content
 
 def _render_par(par, parsed):

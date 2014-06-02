@@ -158,6 +158,12 @@ def _render_formula(node, parsed, config):
     content = "<div class=\"formula\">\[ %s \]</div>" % formula
   return content
 
+def _render_subscript(node, parsed, config):
+  return "<sub>%s</sub>" % _render_content(node, parsed, config)
+
+def _render_superscript(node, parsed, config):
+  return "<sup>%s</sup>" % _render_content(node, parsed, config)
+
 def _render_node(node, parsed, config):
   if type(node) in (str, unicode):
     return node
@@ -185,6 +191,10 @@ def _render_node(node, parsed, config):
     return _render_unord_list(node, parsed, config)
   if node.get("type") == "list_item":
     return _render_list_item(node, parsed, config)
+  if node.get("type") == "subscript":
+    return _render_subscript(node, parsed, config)
+  if node.get("type") == "superscript":
+    return _render_superscript(node, parsed, config)
   return content
 
 def _render_par(par, parsed, config):
