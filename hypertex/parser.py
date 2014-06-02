@@ -60,6 +60,12 @@ def _parse_inline_tag(element):
     if element.attrib.get("img"):
       img = True
     return {"type": "formula", "img": img}
+  elif element.tag == "ol":
+    return {"type": "ord_list"}
+  elif element.tag == "ul":
+    return {"type": "unord_list"}
+  elif element.tag == "li":
+    return {"type": "list_item"}
 
 def _parse_node(element):
   """

@@ -80,6 +80,18 @@ def _render_term(node, parsed, config):
     "text": text})
   return content
 
+def _render_ord_list(node, parsed, config):
+  content = _render_content(node, parsed, config)
+  return "<ol>%s</ol>" % content
+
+def _render_unord_list(node, parsed, config):
+  content = _render_content(node, parsed, config)
+  return "<ul>%s</ul>" % content
+
+def _render_list_item(node, parsed, config):
+  content = _render_content(node, parsed, config)
+  return "<li>%s</li>" % content
+
 def _render_formula_as_pdf(formula, macros):
   "Takes a LaTeX formula and returns a path to a PDF."
   template = temp_env.get_template("formula.tex")
@@ -167,6 +179,12 @@ def _render_node(node, parsed, config):
     return _render_term(node, parsed, config)
   if node.get("type") == "formula":
     return _render_formula(node, parsed, config)
+  if node.get("type") == "ord_list":
+    return _render_ord_list(node, parsed, config)
+  if node.get("type") == "unord_list":
+    return _render_unord_list(node, parsed, config)
+  if node.get("type") == "list_item":
+    return _render_list_item(node, parsed, config)
   return content
 
 def _render_par(par, parsed, config):

@@ -79,6 +79,18 @@ def _render_term(node, parsed):
 def _render_formula(node, parsed):
   return "\\[%s\\]" % _render_content(node, parsed)
 
+def _render_ord_list(node, parsed):
+  content = _render_content(node, parsed)
+  return "\\begin{enumerate}%s\end{enumerate}" % content
+
+def _render_unord_list(node, parsed):
+  content = _render_content(node, parsed)
+  return "\\begin{itemize}%s\\end{itemize}" % content
+
+def _render_list_item(node, parsed):
+  content = _render_content(node, parsed)
+  return "\\item %s\n" % content
+
 def _render_node(node, parsed):
   if type(node) in (str, unicode):
     return node
@@ -101,6 +113,12 @@ def _render_node(node, parsed):
     return _render_term(node, parsed)
   if node.get("type") == "formula":
     return _render_formula(node, parsed)
+  if node.get("type") == "ord_list":
+    return _render_ord_list(node, parsed)
+  if node.get("type") == "unord_list":
+    return _render_unord_list(node, parsed)
+  if node.get("type") == "list_item":
+    return _render_list_item(node, parsed)
   return content
 
 def _render_par(par, parsed):

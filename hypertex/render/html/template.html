@@ -81,6 +81,17 @@
             text-align: center;
             margin: 20px 0;
           }
+
+          ol {
+            counter-reset: list;
+          }
+          ol > li {
+            list-style: none;
+          }
+          ol > li:before {
+            content: "(" counter(list, lower-roman) ") ";
+            counter-increment: list;
+          }
     </style>
   </head>
   <body>
