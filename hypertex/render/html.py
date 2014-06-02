@@ -14,27 +14,21 @@ from hypertex.util import dict_merge
 
 temp_env = Environment(loader=PackageLoader("hypertex.render", "html"))
 
-def _render_content(node, parsed, imgs):
+def _render_content(node, parsed, config):
   if type(node) in (str, unicode):
     return node
   content = node.get("content", "")
   if type(content) is list:
-    c = ""
-    for n in content:
-      r = _render_node(n, parsed, imgs)
-      c += r["content"]
-      imgs = r["imgs"]
-    content = c
-  return {"content": content, "imgs": imgs}
+    content = "".join([_render_node(n, parsed, config) for n in content])
+  return content
 
-def _render_citation(node, parsed, imgs):
+def _render_citation(node, parsed, config):
   tag = node.get("tag", "")
   ref = node.get("ref", "")
   url = ""
   num = 0
   doc = ""
-  r = _render_content(node, parsed, imgs)
-  text = r["content"]
+  text = _render_content(node, parsed, config)
   if tag:
     (doc, partag) = parse_tag(tag)
     num = get_number_of_par(partag, doc, parsed)
@@ -55,16 +49,15 @@ def _render_citation(node, parsed, imgs):
     "ref":  ref,
     "url":  url,
     "text": text})
-  return {"content": content, "imgs": imgs}
+  return content
 
-def _render_term(node, parsed, imgs):
+def _render_term(node, parsed, config):
   tag = node.get("tag", "")
   ref = node.get("ref", "")
   url = ""
   num = 0
   doc = ""
-  r = _render_content(node, parsed, imgs)
-  text = r["content"]
+  text = _render_content(node, parsed, config)
   if tag:
     (doc, partag) = parse_tag(tag)
     num = get_number_of_par(partag, doc, parsed)
@@ -85,7 +78,7 @@ def _render_term(node, parsed, imgs):
     "ref":  ref,
     "url":  url,
     "text": text})
-  return {"content": content, "imgs": imgs}
+  return content
 
 def _render_formula_as_pdf(formula, macros):
   "Takes a LaTeX formula and returns a path to a PDF."
@@ -105,98 +98,97 @@ def _render_formula_as_pdf(formula, macros):
     print err
   return path + ".pdf"
 
-def _render_formula_as_image(formula, macros):
+def _generate_formula_filename(formula, macros):
+  s = formula + repr(macros)
+  return hashlib.md5(s).hexdigest() + ".png"
+
+def _get_formula_png_path(formula, macros, img_dir):
+  return "%s/%s" % (img_dir, _generate_formula_filename(formula, macros))
+
+def _render_formula_as_image(formula, macros, img_dir):
   "Takes a LaTeX formula and returns a path to a PNG."
+  pngpath = _get_formula_png_path(formula, macros, img_dir)
+  if os.path.exists(pngpath):
+    return pngpath
+
+  print "Rendering formula...\n%s" % formula
   pdfpath = _render_formula_as_pdf(formula, macros)
 
-  dir = tempfile.mkdtemp()
-  pngpath = dir + "/" + hashlib.md5(formula).hexdigest() + ".png"
   p = subprocess.Popen(["convert",
     "-density", "120", "-trim", "-transparent", "#FFFFFF",
     pdfpath, pngpath],
     stdout=subprocess.PIPE)
   out, err = p.communicate()
-  print out
-  print "---"
   if err:
     print err
 
   return pngpath
 
-def _render_formula(node, parsed, imgs):
+def _render_formula(node, parsed, config):
   """
   Renders a formula tag.  If it has an img attribute, it will be rendered
   with LaTeX and the result will be included as an image.
   """
-  formula = _render_content(node, parsed, imgs)["content"]
+  formula = _render_content(node, parsed, config)
   as_img = node.get("img")
   content = ""
   if as_img:
-    img_path = _render_formula_as_image(formula, parsed["macros"])
+    if not config["img_dir"]:
+      print "Error: no img_dir provided.  Skipping formula."
+      return ""
+    img_path = _render_formula_as_image(formula, parsed["macros"], config["img_dir"])
     if img_path:
-      imgs.add(img_path)
-      future_path = "imgs/" + os.path.basename(img_path)
-      content = "<div class=\"formula\"><img src=\"%s\" alt=\"%s\" /></div>" % (future_path, formula)
+      img_url = "%s/%s" % (config["img_base_url"], os.path.basename(img_path))
+      content = "<div class=\"formula\"><img src=\"%s\" alt=\"%s\" /></div>" % (img_url, formula)
     else:
       content = "<div class=\"formula\">%s</div>" % formula
   else:
     content = "<div class=\"formula\">\[ %s \]</div>" % formula
-  return {"content": content, "imgs": imgs}
+  return content
 
-def _render_node(node, parsed, imgs):
+def _render_node(node, parsed, config):
   if type(node) in (str, unicode):
-    return {"content": node, "imgs": imgs}
-  r = _render_content(node, parsed, imgs)
-  content = r["content"]
+    return node
+  content = _render_content(node, parsed, config)
   if node.get("type") in BLOCK_TAGS:
     template = temp_env.get_template("block.html")
-    return {"content": template.render({"block": dict_merge(node, {"content": content})}),
-      "imgs": imgs}
+    return template.render({"block": dict_merge(node, {"content": content})})
   if node.get("type") == "paragraph":
-    return {"content": "<p>%s</p>" % content, "imgs": imgs}
+    return "<p>%s</p>" % content
   if node.get("type") == "bold":
-    return {"content": "<b>%s</b>" % content, "imgs": imgs}
+    return "<b>%s</b>" % content
   if node.get("type") == "italic":
-    return {"content": "<i>%s</i>" % content, "imgs": imgs}
+    return "<i>%s</i>" % content
   if node.get("type") == "definition":
-    return {"content": "<span class=\"definition\">%s</span>" % content,
-      "imgs": imgs}
+    return "<span class=\"definition\">%s</span>" % content
   if node.get("type") == "citation":
-    return _render_citation(node, parsed, imgs)
+    return _render_citation(node, parsed, config)
   if node.get("type") == "term":
-    return _render_term(node, parsed, imgs)
+    return _render_term(node, parsed, config)
   if node.get("type") == "formula":
-    return _render_formula(node, parsed, imgs)
-  return r
+    return _render_formula(node, parsed, config)
+  return content
 
-def _render_par(par, parsed, imgs):
-  content = ""
-  for n in par.get("content"):
-    r = _render_node(n, parsed, imgs)
-    content += r["content"]
-    imgs = r["imgs"]
-  return {"content": content, "imgs": imgs}
+def _render_par(par, parsed, config):
+  return "".join(_render_node(n, parsed, config) for n in par.get("content"))
 
 def _escape_macros(macros):
   return [(k, v.replace("\\", "\\\\")) for (k, v) in macros.items()]
 
-def render(parsed):
+def render(parsed, config={}):
   """
-  Takes a parsed hypertex file and renders it as HTML.  Returns a dict with
-  the HTML in the `html` key and another key `imgs` which is a list of paths
-  to auxiliary images (for formulas).
+  Takes a parsed hypertex file and renders it as HTML.
+  Accepts a config dict which should contain img_dir and img_base_url when
+  the output format is HTML.
   """
 
+  config = dict_merge({"img_dir": None, "img_base_url": ""}, config)
   template = temp_env.get_template("template.html")
-  imgs = set([])
-  pars = []
-  for p in parsed["body"]["pars"]:
-    r = _render_par(p, parsed, imgs)
-    pars.append(dict_merge(p, {"content": r["content"]}))
-    imgs = r["imgs"]
+  pars = [dict_merge(p, {"content": _render_par(p, parsed, config)})
+    for p in parsed["body"]["pars"]]
   html = template.render({
     "title":   parsed["title"],
     "author":  parsed["author"],
     "macros":  _escape_macros(parsed["macros"]),
     "pars":    pars})
-  return {"html": html, "imgs": imgs}
+  return html

@@ -15,6 +15,10 @@ if __name__ == "__main__":
     help="output file")
   op.add_option("-f", "--format", dest="format",
     help="output format (tex or html)")
+  op.add_option("--imgdir", dest="img_dir",
+    help="for html output, a path to a dir where images will be saved")
+  op.add_option("--imgurl", dest="img_base_url",
+    help="for html output, the base url to prepend to image paths")
 
   (options, args) = op.parse_args()
 
@@ -38,21 +42,17 @@ if __name__ == "__main__":
   except IOError:
     op.error("Unable to open the file: %s" % options.infile)
 
+  img_dir = None
+  if options.img_dir:
+    img_dir = os.path.abspath(options.img_dir)
+
   cwd = os.getcwd()
   # this is so that opening other src files will work correctly...
   os.chdir(os.path.dirname(options.infile))
 
   if format == "html":
-    output = hypertex.render_html(input)
-    if output["imgs"]:
-      os.chdir(cwd)
-      imgdir = os.path.dirname(outfile) + "/imgs"
-      if not os.path.exists(imgdir):
-        os.mkdir(imgdir)
-      for i in output["imgs"]:
-        shutil.copy(i, imgdir)
-        os.remove(i)
-    output = output["html"]
+    output = hypertex.render_html(input,
+      {"img_dir": img_dir, "img_base_url": options.img_base_url})
   elif format == "tex":
     output = hypertex.render_tex(input)
 
