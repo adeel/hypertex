@@ -104,7 +104,7 @@ def _parse_body_pars(pars, element):
 def _parse_body(body):
   return {"body": {"pars": reduce(_parse_body_pars, body, [])}}
 
-def _parse_first_gen(parsed, element):
+def _parse_first_gen(parsed, element, config):
   if element.tag == "head":
     return dict_merge(parsed, _parse_head(element))
   if element.tag == "body":
@@ -120,10 +120,11 @@ def _fix_angle_brackets(htex):
   htex = re.sub(r"([^a-z\"\/\-]+)>", r"\1&gt;", htex)
   return htex
 
-def parse(htex):
+def parse(htex, config={}):
+  config = dict_merge({"src_dir": None, config})
   htex = _fix_angle_brackets(htex)
   root = etree.fromstring(htex)
-  return reduce(_parse_first_gen, root, {})
+  return reduce(lambda x,y: _parse_first_gen(x,y,config), root, {})
 
 def parse_tag(tag):
   """
