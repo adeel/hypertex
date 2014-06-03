@@ -8,11 +8,10 @@ import hashlib
 from jinja2 import Environment, PackageLoader
 import wand.image, wand.color
 
-from hypertex.parser import parse_tag, get_number_of_par
 from hypertex.constants import BLOCK_TAGS
 from hypertex.util import dict_merge
 
-temp_env = Environment(loader=PackageLoader("hypertex.render", "html"))
+tmpl_env = Environment(loader=PackageLoader("hypertex.render", "html"))
 
 def _render_content(node, parsed, config):
   if type(node) in (str, unicode):
@@ -23,59 +22,41 @@ def _render_content(node, parsed, config):
   return content
 
 def _render_citation(node, parsed, config):
-  tag = node.get("tag", "")
-  ref = node.get("ref", "")
-  url = ""
-  num = 0
-  doc = ""
+  doc = node.get("doc", "")
+  par = node.get("par", "")
   text = _render_content(node, parsed, config)
-  if tag:
-    (doc, partag) = parse_tag(tag)
-    num = get_number_of_par(partag, doc, parsed)
-    url = "#"
-    if doc:
-      url = "%s.html#%d" % (doc, num)
-    else:
-      url = "#%d" % num
-  elif ref:
-    # TODO
-    url = "#%s" % ref
+  if doc:
+    url = "%s%s.html#%d" % (config["src_base_url"], doc, par)
+  else:
+    url = "#%d" % par
 
-  template = temp_env.get_template("citation.html")
+  template = tmpl_env.get_template("citation.html")
   content = template.render({
-    "tag":  tag,
     "doc":  doc,
-    "num":  str(num),
-    "ref":  ref,
+    "num":  str(par),
     "url":  url,
     "text": text})
   return content
 
-def _render_term(node, parsed, config):
-  tag = node.get("tag", "")
+def _render_external_citation(node, parsed, config):
   ref = node.get("ref", "")
-  url = ""
-  num = 0
-  doc = ""
   text = _render_content(node, parsed, config)
-  if tag:
-    (doc, partag) = parse_tag(tag)
-    num = get_number_of_par(partag, doc, parsed)
-    url = "#"
-    if doc:
-      url = "%s.html#%d" % (doc, num)
-    else:
-      url = "#%d" % num
-  elif ref:
-    # TODO
-    url = "#%s" % ref
 
-  template = temp_env.get_template("term.html")
+  return "%s (%s)" % (text, ref)
+
+def _render_term(node, parsed, config):
+  doc = node.get("doc", "")
+  par = node.get("par", "")
+  text = _render_content(node, parsed, config)
+  if doc:
+    url = "%s%s.html#%d" % (config["src_base_url"], doc, par)
+  else:
+    url = "#%d" % par
+
+  template = tmpl_env.get_template("term.html")
   content = template.render({
-    "tag":  tag,
     "doc":  doc,
-    "num":  str(num),
-    "ref":  ref,
+    "num":  str(par),
     "url":  url,
     "text": text})
   return content
@@ -94,7 +75,7 @@ def _render_list_item(node, parsed, config):
 
 def _render_formula_as_pdf(formula, macros):
   "Takes a LaTeX formula and returns a path to a PDF."
-  template = temp_env.get_template("formula.tex")
+  template = tmpl_env.get_template("formula.tex")
   tex = template.render({
     "formula": formula,
     "macros":  macros.items()})
@@ -169,7 +150,7 @@ def _render_node(node, parsed, config):
     return node
   content = _render_content(node, parsed, config)
   if node.get("type") in BLOCK_TAGS:
-    template = temp_env.get_template("block.html")
+    template = tmpl_env.get_template("block.html")
     return template.render({"block": dict_merge(node, {"content": content})})
   if node.get("type") == "paragraph":
     return "<p>%s</p>" % content
@@ -209,9 +190,13 @@ def render(parsed, config={}):
   Accepts a config dict which should contain img_dir and img_base_url when
   the output format is HTML.
   """
-
-  config = dict_merge({"img_dir": None, "img_base_url": ""}, config)
-  template = temp_env.get_template("template.html")
+  config = dict_merge(
+    {"img_dir": None, "img_base_url": "", "src_base_url": ""},
+    config)
+  base = config["src_base_url"]
+  if base and not base.endswith("/"):
+    config["src_base_url"] = base + "/"
+  template = tmpl_env.get_template("template.html")
   pars = [dict_merge(p, {"content": _render_par(p, parsed, config)})
     for p in parsed["body"]["pars"]]
   html = template.render({

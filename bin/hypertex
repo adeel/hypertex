@@ -15,8 +15,10 @@ if __name__ == "__main__":
     help="output file")
   op.add_option("-f", "--format", dest="format",
     help="output format (tex or html)")
-  op.add_option("-d", "--dir", dest="src_dir",
+  op.add_option("--srcdir", dest="src_dir",
     help="directory containing hypertex files that will be available for linking")
+  op.add_option("--srcurl", dest="src_base_url",
+    help="the base url where srcdir can be accessed")
   op.add_option("--imgdir", dest="img_dir",
     help="for html output, a path to a dir where images will be saved")
   op.add_option("--imgurl", dest="img_base_url",
@@ -44,7 +46,7 @@ if __name__ == "__main__":
   except IOError:
     op.error("Unable to open the file: %s" % options.infile)
 
-  src_dir = None
+  src_dir = os.path.abspath("./")
   if options.src_dir:
     src_dir = os.path.abspath(options.src_dir)
   img_dir = None
@@ -58,10 +60,12 @@ if __name__ == "__main__":
   if format == "html":
     output = hypertex.render_html(input,
       {"src_dir": src_dir},
-      {"img_dir": img_dir, "img_base_url": options.img_base_url})
+      {"img_dir": img_dir, "img_base_url": options.img_base_url,
+       "src_base_url": options.src_base_url})
   elif format == "tex":
     output = hypertex.render_tex(input,
-      {"src_dir": src_dir})
+      {"src_dir": src_dir},
+      {"src_base_url": options.src_base_url})
 
   os.chdir(cwd)
   codecs.open(outfile, encoding="utf8", mode="w").write(output)
