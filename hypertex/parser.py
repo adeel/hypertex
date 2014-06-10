@@ -203,6 +203,8 @@ def _resolve_internal_citations_in_node(node, parsed, config):
     (doc, par) = _parse_partag(node.get("tag"))
     if not doc:
       r = _resolve_internal_partag(par, parsed, config)
+      if not r:
+        r = {"par": 0}
       return dict_merge(node, r)
   return dict_merge(node, {"content":
     [_resolve_internal_citations_in_node(x, parsed, config) for x in node.get("content")]})

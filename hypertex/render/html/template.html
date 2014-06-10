@@ -48,14 +48,26 @@
         #content {}
           .par {
             margin: 20px 0;
+            position: relative;
           }
+            .par .index {
+              position: absolute;
+              left: 0;
+            }
             .par .index,
             .par .type {
               font-weight: bold;
             }
             .par .content {
               display: inline;
+              text-indent: 30px;
             }
+            .par > .content {
+              display: block;
+            }
+              .par .content .block {
+                margin: 12px 0;
+              }
               .par .content a,
               .par .content a:visited {
                 color: blue;
@@ -63,14 +75,9 @@
               .par .content .definition {
                 font-style: italic;
               }
-
-              .par .content .block {
-                margin: 12px 0;
-              }
               .par .content .block:first-child {
                 display: inline;
               }
-
               .par .content .thm,
               .par .content .prp,
               .par .content .lem,
@@ -78,7 +85,6 @@
               .par .content .cnj {
                 font-style: italic;
               }
-
               .par .content .term a,
               .par .content .term a:visited {
                 background-color: #FAF0D9;
@@ -109,7 +115,7 @@
       <div id="content">
 {% for par in pars -%}
         <div class="{{ par.type }}" id="{{ loop.index }}">{% for tag in par.tags %}<a name="{{ tag }}"></a>{% endfor %}
-          <span class="index">{{ loop.index }}.&nbsp;&nbsp;</span>
+          <span class="index">{{ loop.index }}.</span>
           <div class="content">{{ par.content }}</div>
         </div>
 {% endfor %}
