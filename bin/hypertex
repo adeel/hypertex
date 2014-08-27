@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-import os, os.path
+import os, os.path, sys
 import shutil
 import codecs
 from optparse import OptionParser
@@ -11,8 +11,6 @@ if __name__ == "__main__":
 
   op.add_option("-i", "--input", dest="infile",
     help="input file")
-  op.add_option("-o", "--output", dest="outfile",
-    help="output file")
   op.add_option("-f", "--format", dest="format",
     help="output format (tex or html)")
   op.add_option("--srcdir", dest="src_dir",
@@ -28,18 +26,12 @@ if __name__ == "__main__":
 
   if not options.infile or not os.path.isfile(options.infile):
     op.error("Please enter a valid input file.")
-  if not (options.outfile or options.format):
-    op.error("Please enter either an output file or an output format.")
+  if not options.format:
+    op.error("Please enter either an output format.")
 
   format = options.format
-  if not format:
-    format = os.path.splitext(options.outfile)[1].strip(".")
   if format not in ["tex", "html"]:
     op.error("Please choose a valid output format (tex or html).")
-
-  outfile = options.outfile
-  if not outfile:
-    outfile = os.path.splitext(options.infile)[0] + "." + format
 
   try:
     input = codecs.open(options.infile, encoding="utf8", mode="r").read()
@@ -68,4 +60,4 @@ if __name__ == "__main__":
       {"src_base_url": options.src_base_url})
 
   os.chdir(cwd)
-  codecs.open(outfile, encoding="utf8", mode="w").write(output)
+  sys.stdout.write(output)
