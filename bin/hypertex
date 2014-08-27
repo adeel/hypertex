@@ -27,7 +27,7 @@ if __name__ == "__main__":
   if not options.infile or not os.path.isfile(options.infile):
     op.error("Please enter a valid input file.")
   if not options.format:
-    op.error("Please enter either an output format.")
+    op.error("Please enter an output format.")
 
   format = options.format
   if format not in ["tex", "html"]:
@@ -60,4 +60,5 @@ if __name__ == "__main__":
       {"src_base_url": options.src_base_url})
 
   os.chdir(cwd)
+  output = output.encode("utf8", "ignore")
   sys.stdout.write(output)

@@ -1,7 +1,7 @@
 __name__ = "parser"
 
 import os
-import codecs
+from codecs import open
 from functools import reduce
 import re
 from lxml import etree
@@ -30,17 +30,43 @@ def _register_macros_from_file(macros, fname, config):
   return dict_merge(macros, dict([(x.attrib.get("name"), x.attrib.get("value"))
     for x in root.findall("macro")]))
 
+def _register_refs_from_file(refs, fname, config):
+  src_dir = config["src_dir"]
+  if not os.path.isdir(src_dir):
+    _register_error("The given path %s is not a directory." % src_dir)
+  fpath = "%s/%s" % (src_dir, fname)
+  if not os.path.isfile(fpath):
+    _register_error("A reference file could not be found at the path: %s"
+      % fpath)
+    return refs
+  try:
+    src = open(fpath, "r").read()
+  except IOError:
+    _register_error("References could not be loaded from the path: %s" % fpath)
+    return refs
+  root = etree.fromstring(src)
+  return dict_merge(refs,
+    dict([(r.attrib.get("id"), dict([(x.tag, x.text) for x in r]))
+      for r in root.findall("ref")]))
+
 def _parse_head(head, config):
   title = head.find("title")
   author = head.find("author")
+  
   macros = dict([(x.attrib.get("name"), x.attrib.get("value"))
     for x in head.findall("macro")])
   macro_files = [x.attrib.get("src", "") for x in head.findall("macros")]
   macros = reduce(lambda x,y: _register_macros_from_file(x, y, config),
     macro_files, macros)
+
+  ref_files = [x.attrib.get("src", "") for x in head.findall("refs")]
+  refs = reduce(lambda x,y: _register_refs_from_file(x, y, config),
+    ref_files, {})
+
   return {"title":  title.text if title is not None else "",
           "author": author.text if author is not None else "",
-          "macros": macros}
+          "macros": macros,
+          "refs": refs}
 
 def _parse_partag(tag):
   """
@@ -81,7 +107,7 @@ def _resolve_external_partag(doc, par, config):
     _register_error("The given path %s is not a directory." % src_dir)
   try:
     fpath = "%s/%s.xml" % (src_dir, doc)
-    htex = codecs.open(fpath, encoding="utf8", mode="r").read()
+    htex = open(fpath, encoding="utf8", mode="r").read()
     parsed = parse(htex, config)
   except:
     return {"doc": doc, "path": fpath, "par": 0}
@@ -94,8 +120,10 @@ def _resolve_external_partag(doc, par, config):
 def _parse_citation_tag(element, config):
   ref = element.attrib.get("ref")
   tag = element.attrib.get("tag")
+  pre = element.attrib.get("pre")
+  post = element.attrib.get("post")
   if tag:
-    x = {"type": "citation", "tag": tag}
+    x = {"type": "citation", "tag": tag, "pre": pre, "post": post}
     (doc, par) = _parse_partag(tag)
     if doc:
       return dict_merge(x, _resolve_external_partag(doc, par, config))
@@ -103,7 +131,8 @@ def _parse_citation_tag(element, config):
       # internal tag - will have to get it on second pass
       return x
   elif ref:
-    return {"type": "external_citation", "ref": ref}
+    return {"type": "external_citation",
+      "refid": ref, "pre": pre, "post": post}
 
 def _parse_term_tag(element, config):
   tag = element.attrib.get("tag", "")
@@ -209,6 +238,22 @@ def _resolve_internal_citations_in_node(node, parsed, config):
   return dict_merge(node, {"content":
     [_resolve_internal_citations_in_node(x, parsed, config) for x in node.get("content")]})
 
+def _resolve_external_citations_in_node(node, cited_refs, parsed, config):
+  if type(node) in (str, unicode):
+    return {"cited_refs": cited_refs, "par": node}
+  if (node.get("type") == "external_citation" and
+      not node.get("ref")):
+    ref = parsed["refs"].get(node.get("refid"), {})
+    if ref:
+      cited_refs.add(node.get("refid"))
+    return {"cited_refs": cited_refs, "par": dict_merge(node, {"ref": ref})}
+  resolved_content = []
+  for x in node.get("content"):
+    y = _resolve_external_citations_in_node(x, cited_refs, parsed, config)
+    resolved_content.append(y["par"])
+    cited_refs.update(y["cited_refs"])
+  return {"cited_refs": cited_refs, "par": dict_merge(node, {"content": resolved_content})}
+
 def parse(htex, config={}):
   config = dict_merge({"src_dir": "./"}, config)
   htex = _fix_angle_brackets(htex)
@@ -219,4 +264,19 @@ def parse(htex, config={}):
   parsed["body"]["pars"] = map(lambda p:
     _resolve_internal_citations_in_node(p, parsed, config),
     parsed["body"]["pars"])
+  # resolve external citations
+  cited_refs = set()
+  resolved_pars = []
+  for p in parsed["body"]["pars"]:
+    x = _resolve_external_citations_in_node(p, cited_refs, parsed, config)
+    cited_refs.update(x.get("cited_refs"))
+    resolved_pars.append(x.get("par"))
+    # TODO: don't resolve the pars, just keep the ref id there
+  parsed["body"]["pars"] = resolved_pars
+
+  cited_refs = map(lambda x: dict_merge({"id": x}, parsed["refs"].get(x)), list(cited_refs))
+  cited_refs = sorted(cited_refs, key=lambda x: (x.get("author"), x.get("title")))
+  for (i, r) in enumerate(cited_refs):
+    cited_refs[i] = dict_merge(r, {"key": str(i + 1)})
+  parsed["refs"] = dict([(r["id"], r) for r in cited_refs])
   return parsed

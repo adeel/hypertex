@@ -106,6 +106,12 @@
             content: "(" counter(list, lower-roman) ") ";
             counter-increment: list;
           }
+
+      #references {}
+        #references h2 {
+          font-weight: bold;
+          text-align: center;
+        }
     </style>
   </head>
   <body>
@@ -117,6 +123,15 @@
         <div class="{{ par.type }}" id="{{ loop.index }}">{% for tag in par.tags %}<a name="{{ tag }}"></a>{% endfor %}
           <span class="index">{{ loop.index }}.</span>
           <div class="content">{{ par.content }}</div>
+        </div>
+{% endfor %}
+      </div>
+      <div id="references">
+        <h2>References</h2>
+{% for (id,ref) in refs.iteritems() -%}
+        <div class="ref">
+          <span class="key">{{ ref.key }}.</span>
+{% if ref.author %}{{ ref.author }}, {% endif %}{% if ref.title %}<i>{{ ref.title }}</i>{% endif %}{% if ref.journal %}, {{ref.journal}}, vol. {{ref.volume}}, no. {{ref.number}}{% endif %}{% if ref.year %}, {{ ref.year }}{% endif %}{% if ref.pages %}, {{ref.pages}}.{% endif %}
         </div>
 {% endfor %}
       </div>

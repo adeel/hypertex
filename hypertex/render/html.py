@@ -39,10 +39,13 @@ def _render_citation(node, parsed, config):
   return content
 
 def _render_external_citation(node, parsed, config):
-  ref = node.get("ref", "")
   text = _render_content(node, parsed, config)
-
-  return "%s (%s)" % (text, ref)
+  template = tmpl_env.get_template("external_citation.html")
+  refid = node.get("refid")
+  ref = parsed["refs"].get(refid)
+  content = template.render(dict_merge(ref,
+    {"node": node, "text": text}))
+  return content
 
 def _render_term(node, parsed, config):
   doc = node.get("doc", "")
@@ -164,6 +167,8 @@ def _render_node(node, parsed, config):
     return _render_citation(node, parsed, config)
   if node.get("type") == "term":
     return _render_term(node, parsed, config)
+  if node.get("type") == "external_citation":
+    return _render_external_citation(node, parsed, config)
   if node.get("type") == "formula":
     return _render_formula(node, parsed, config)
   if node.get("type") == "ord_list":
@@ -203,5 +208,6 @@ def render(parsed, config={}):
     "title":   parsed["title"],
     "author":  parsed["author"],
     "macros":  _escape_macros(parsed["macros"]),
-    "pars":    pars})
+    "pars":    pars,
+    "refs":    parsed["refs"]})
   return html
