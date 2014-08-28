@@ -128,10 +128,10 @@
       </div>
       <div id="references">
         <h2>References</h2>
-{% for (id,ref) in refs.iteritems() -%}
-        <div class="ref">
+{% for ref in cited_refs -%}
+        <div class="ref" id="ref{{ ref.key }}">
           <span class="key">{{ ref.key }}.</span>
-{% if ref.author %}{{ ref.author }}, {% endif %}{% if ref.title %}<i>{{ ref.title }}</i>{% endif %}{% if ref.journal %}, {{ref.journal}}, vol. {{ref.volume}}, no. {{ref.number}}{% endif %}{% if ref.year %}, {{ ref.year }}{% endif %}{% if ref.pages %}, {{ref.pages}}.{% endif %}
+{% if ref.author %}{{ ref.author }}, {% endif %}{% if ref.title %}<i>{{ ref.title }}</i>{% endif %}{% if ref.journal %}, {{ref.journal}}, vol. {{ref.volume}}, no. {{ref.number}}{% endif %}{% if ref.year %}, {{ ref.year }}{% endif %}{% if ref.pages %}, {{ref.pages}}{% endif %}.
         </div>
 {% endfor %}
       </div>

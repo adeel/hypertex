@@ -204,10 +204,12 @@ def render(parsed, config={}):
   template = tmpl_env.get_template("template.html")
   pars = [dict_merge(p, {"content": _render_par(p, parsed, config)})
     for p in parsed["body"]["pars"]]
+  cited_refs = sorted(parsed["refs"].values(), key=lambda x: x.get("key"))
   html = template.render({
-    "title":   parsed["title"],
-    "author":  parsed["author"],
-    "macros":  _escape_macros(parsed["macros"]),
-    "pars":    pars,
-    "refs":    parsed["refs"]})
+    "title":      parsed["title"],
+    "author":     parsed["author"],
+    "macros":     _escape_macros(parsed["macros"]),
+    "pars":       pars,
+    "refs":       parsed["refs"],
+    "cited_refs": cited_refs})
   return html
