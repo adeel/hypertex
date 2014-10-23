@@ -246,9 +246,12 @@ def _register_cited_ref_ids(node, cited_ref_ids, parsed, config):
     ref = parsed["refs"].get(node.get("refid"), {})
     if ref:
       cited_ref_ids.add(node.get("refid"))
+    else:
+      _register_error("External reference not found: %s" % node.get("refid"))
     return cited_ref_ids
   for x in node.get("content"):
-    cited_ref_ids.update(_register_cited_ref_ids(x, cited_ref_ids, parsed, config))
+    cited_ref_ids.update(
+      _register_cited_ref_ids(x, cited_ref_ids, parsed, config))
   return cited_ref_ids
 
 def parse(htex, config={}):
@@ -265,15 +268,18 @@ def parse(htex, config={}):
   # get a sorted list of cited references
   cited_ref_ids = set()
   for p in parsed["body"]["pars"]:
-    cited_ref_ids.update(_register_cited_ref_ids(p, cited_ref_ids, parsed, config))
-  cited_ref_ids = sorted(list(cited_ref_ids), key=lambda x: parsed["refs"][x].get("author"))
+    cited_ref_ids.update(
+      _register_cited_ref_ids(p, cited_ref_ids, parsed, config))
+  cited_ref_ids = sorted(list(cited_ref_ids),
+    key=lambda x: parsed["refs"][x].get("author"))
   parsed["cited_ref_ids"] = cited_ref_ids
 
   # make a dictionary of the cited references, with keys
   # (indicating the sort order)
   refs = []
   for (i, rid) in enumerate(cited_ref_ids):
-    refs.append(dict_merge({"id": rid, "key": str(i + 1)}, parsed["refs"].get(rid)))
+    refs.append(dict_merge({"id": rid, "key": str(i + 1)},
+      parsed["refs"].get(rid)))
   parsed["refs"] = dict([(r["id"], r) for r in refs])
 
   return parsed

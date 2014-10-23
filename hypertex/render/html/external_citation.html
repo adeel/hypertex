@@ -1,0 +1,8 @@
+<span class="external_citation"><!--
+  -->{% if not node.pre and not node.post %}[<a href="#ref{{key}}">{{key}}</a>]<!--
+  -->{% else %}(<!--
+    -->{% if node.pre %}{{ node.pre }} {% endif %}<!--
+    -->[<a href="#ref{{key}}">{{key}}</a>]<!--
+    -->{% if node.post %}, {{ node.post }}{% endif %}<!--
+  -->){% endif %}<!--
+--></span>
